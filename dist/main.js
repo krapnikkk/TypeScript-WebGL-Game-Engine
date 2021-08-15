@@ -16,21 +16,34 @@ var TSE;
             TSE.gl.clearColor(0, 0, 0, 1);
             this.loadShaders();
             this._shader.use();
+            this._projection = TSE.Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -1.0, 100.0);
+            this._sprite = new TSE.Sprite("test");
+            this._sprite.load();
+            this._sprite.position.x = 200;
+            this.resize();
             this.loop();
         };
         Engine.prototype.resize = function () {
             if (this._canvas !== undefined) {
                 this._canvas.width = window.innerWidth;
                 this._canvas.height = window.innerHeight;
+                TSE.gl.viewport(-1, 1, 1, -1);
             }
         };
         Engine.prototype.loop = function () {
             TSE.gl.clear(TSE.gl.COLOR_BUFFER_BIT);
+            var colorPosition = this._shader.getUniformLocation("u_color");
+            TSE.gl.uniform4fv(colorPosition, new Float32Array([1, 0.5, 0, 1]));
+            var projectionPosition = this._shader.getUniformLocation("u_projection");
+            TSE.gl.uniformMatrix4fv(projectionPosition, false, new Float32Array(this._projection.data));
+            var modelPosition = this._shader.getUniformLocation("u_model");
+            TSE.gl.uniformMatrix4fv(modelPosition, false, new Float32Array(TSE.Martix4.tranlstion(this._sprite.position).data));
+            this._sprite.draw();
             requestAnimationFrame(this.loop.bind(this));
         };
         Engine.prototype.loadShaders = function () {
-            var vertexShaderSource = "\n                attribute vec3 a_position;\n                void main(){\n                    gl_Position = vec4(a_position,1.0);\n                }\n             ";
-            var fragmentShaderSource = "\n                precision mediump float;\n                void main(){\n                    gl_FragColor = vec4(1.0);\n                }\n             ";
+            var vertexShaderSource = "\n                attribute vec3 a_position;\n                uniform mat4 u_projection;\n                uniform mat4 u_model;\n                void main(){\n                    gl_Position = u_projection * u_model * vec4(a_position,1.0);\n                }\n             ";
+            var fragmentShaderSource = "\n                precision mediump float;\n                uniform vec4 u_color;\n                void main(){\n                    gl_FragColor = u_color;\n                }\n             ";
             this._shader = new TSE.Shader("basic", vertexShaderSource, fragmentShaderSource);
         };
         return Engine;
@@ -67,12 +80,127 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var AttributeInfo = (function () {
+        function AttributeInfo() {
+        }
+        return AttributeInfo;
+    }());
+    TSE.AttributeInfo = AttributeInfo;
+    var GLBuffer = (function () {
+        function GLBuffer(elementSize, dataType, targetBufferType, mode) {
+            if (dataType === void 0) { dataType = TSE.gl.FLOAT; }
+            if (targetBufferType === void 0) { targetBufferType = TSE.gl.ARRAY_BUFFER; }
+            if (mode === void 0) { mode = TSE.gl.TRIANGLES; }
+            this._hasAttributeLocation = false;
+            this._data = [];
+            this._attributes = [];
+            this._elementSize = elementSize;
+            this._dataType = dataType;
+            this._targetBufferType = targetBufferType;
+            this._mode = mode;
+            switch (this._dataType) {
+                case TSE.gl.FLOAT:
+                case TSE.gl.INT:
+                case TSE.gl.UNSIGNED_INT:
+                    this._typeSize = 4;
+                    break;
+                case TSE.gl.SHORT:
+                case TSE.gl.UNSIGNED_SHORT:
+                    this._typeSize = 2;
+                    break;
+                case TSE.gl.BYTE:
+                case TSE.gl.UNSIGNED_BYTE:
+                    this._typeSize = 1;
+                    break;
+                default:
+                    throw new Error("Unrecognized data type:" + dataType.toString());
+            }
+            this._stride = this._elementSize * this._typeSize;
+            this._buffer = TSE.gl.createBuffer();
+        }
+        GLBuffer.prototype.bind = function (normalized) {
+            if (normalized === void 0) { normalized = false; }
+            TSE.gl.bindBuffer(this._targetBufferType, this._buffer);
+            if (this._hasAttributeLocation) {
+                for (var _i = 0, _a = this._attributes; _i < _a.length; _i++) {
+                    var it = _a[_i];
+                    TSE.gl.vertexAttribPointer(it.location, it.size, this._dataType, normalized, this._stride, it.offset * this._typeSize);
+                    TSE.gl.enableVertexAttribArray(it.location);
+                }
+            }
+        };
+        GLBuffer.prototype.unbind = function () {
+            for (var _i = 0, _a = this._attributes; _i < _a.length; _i++) {
+                var it = _a[_i];
+                TSE.gl.disableVertexAttribArray(it.location);
+            }
+            TSE.gl.bindBuffer(this._targetBufferType, null);
+        };
+        GLBuffer.prototype.addAttributeLocation = function (info) {
+            this._hasAttributeLocation = true;
+            this._attributes.push(info);
+        };
+        GLBuffer.prototype.pushBackData = function (data) {
+            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
+                var d = data_1[_i];
+                this._data.push(d);
+            }
+        };
+        GLBuffer.prototype.upload = function () {
+            TSE.gl.bindBuffer(this._targetBufferType, this._buffer);
+            var bufferData;
+            switch (this._dataType) {
+                case TSE.gl.FLOAT:
+                    bufferData = new Float32Array(this._data);
+                    break;
+                case TSE.gl.INT:
+                    bufferData = new Int32Array(this._data);
+                    break;
+                case TSE.gl.UNSIGNED_INT:
+                    bufferData = new Uint32Array(this._data);
+                    break;
+                case TSE.gl.SHORT:
+                    bufferData = new Int16Array(this._data);
+                    break;
+                case TSE.gl.UNSIGNED_SHORT:
+                    bufferData = new Uint16Array(this._data);
+                    break;
+                case TSE.gl.BYTE:
+                    bufferData = new Int8Array(this._data);
+                    break;
+                case TSE.gl.UNSIGNED_BYTE:
+                    bufferData = new Uint8Array(this._data);
+                    break;
+            }
+            TSE.gl.bufferData(this._targetBufferType, bufferData, TSE.gl.STATIC_DRAW);
+        };
+        GLBuffer.prototype.draw = function () {
+            if (this._targetBufferType === TSE.gl.ARRAY_BUFFER) {
+                TSE.gl.drawArrays(this._mode, 0, this._data.length / this._elementSize);
+            }
+            else if (this._targetBufferType === TSE.gl.ELEMENT_ARRAY_BUFFER) {
+                TSE.gl.drawElements(this._mode, this._data.length, this._dataType, 0);
+            }
+        };
+        GLBuffer.prototype.destroy = function () {
+            TSE.gl.deleteBuffer(this._buffer);
+        };
+        return GLBuffer;
+    }());
+    TSE.GLBuffer = GLBuffer;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var Shader = (function () {
         function Shader(name, vertexSource, fragmentSource) {
+            this._attributes = {};
+            this._uniforms = {};
             this._name = name;
             var vertexShader = this.loadShader(vertexSource, TSE.gl.VERTEX_SHADER);
             var fragmentShader = this.loadShader(fragmentSource, TSE.gl.FRAGMENT_SHADER);
-            this._program = this.createProgram(vertexShader, fragmentShader);
+            this.createProgram(vertexShader, fragmentShader);
+            this.detectAttributes();
+            this.detectUniforms();
         }
         Object.defineProperty(Shader.prototype, "name", {
             get: function () {
@@ -100,12 +228,184 @@ var TSE;
             if (error !== "") {
                 throw new Error("Error linking shader " + this._name + ":" + error);
             }
-            return this._program;
         };
         Shader.prototype.use = function () {
             TSE.gl.useProgram(this._program);
         };
+        Shader.prototype.detectAttributes = function () {
+            var attributeCount = TSE.gl.getProgramParameter(this._program, TSE.gl.ACTIVE_ATTRIBUTES);
+            for (var i = 0; i < attributeCount; i++) {
+                var attributeInfo = TSE.gl.getActiveAttrib(this._program, i);
+                if (!attributeInfo) {
+                    break;
+                }
+                var name_1 = attributeInfo.name;
+                this._attributes[name_1] = TSE.gl.getAttribLocation(this._program, name_1);
+            }
+        };
+        Shader.prototype.detectUniforms = function () {
+            var attributeCount = TSE.gl.getProgramParameter(this._program, TSE.gl.ACTIVE_UNIFORMS);
+            for (var i = 0; i < attributeCount; i++) {
+                var uniformInfo = TSE.gl.getActiveUniform(this._program, i);
+                if (!uniformInfo) {
+                    break;
+                }
+                var name_2 = uniformInfo.name;
+                this._uniforms[name_2] = TSE.gl.getUniformLocation(this._program, name_2);
+            }
+        };
+        Shader.prototype.getAttributeLocation = function (name) {
+            var attribute = this._attributes[name];
+            if (attribute === undefined) {
+                throw new Error("Unable to find attribute named " + name + " in shader named '" + this._name + "'");
+            }
+            return attribute;
+        };
+        Shader.prototype.getUniformLocation = function (name) {
+            var uniform = this._uniforms[name];
+            if (uniform === undefined) {
+                throw new Error("Unable to find uniform named " + name + " in shader named '" + this._name + "'");
+            }
+            return uniform;
+        };
         return Shader;
     }());
     TSE.Shader = Shader;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var Sprite = (function () {
+        function Sprite(name, width, height) {
+            if (width === void 0) { width = 100; }
+            if (height === void 0) { height = 100; }
+            this.position = new TSE.Vector3();
+            this._name = name;
+            this._width = width;
+            this._height = height;
+        }
+        Sprite.prototype.load = function () {
+            this._buffer = new TSE.GLBuffer(3);
+            var positionAttribute = new TSE.AttributeInfo();
+            positionAttribute.location = 0;
+            positionAttribute.offset = 0;
+            positionAttribute.size = 3;
+            this._buffer.addAttributeLocation(positionAttribute);
+            var vertices = [
+                0, 0, 0,
+                0, this._height, 0,
+                this._width, this._height, 0,
+                this._width, this._height, 0,
+                this._width, 0, 0,
+                0, 0, 0
+            ];
+            this._buffer.pushBackData(vertices);
+            this._buffer.upload();
+            this._buffer.unbind();
+        };
+        Sprite.prototype.update = function (time) {
+        };
+        Sprite.prototype.draw = function () {
+            this._buffer.bind();
+            this._buffer.draw();
+        };
+        return Sprite;
+    }());
+    TSE.Sprite = Sprite;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var Martix4 = (function () {
+        function Martix4() {
+            this._data = [];
+            this._data = [
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            ];
+        }
+        Object.defineProperty(Martix4.prototype, "data", {
+            get: function () {
+                return this._data;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Martix4.identity = function () {
+            return new Martix4();
+        };
+        Martix4.orthographic = function (left, right, bottom, top, nearClip, farCLip) {
+            var m = new Martix4();
+            var lr = 1.0 / (left - right);
+            var bt = 1.0 / (bottom - top);
+            var nf = 1.0 / (nearClip - farCLip);
+            m._data[0] = -2.0 * lr;
+            m._data[5] = -2.0 * bt;
+            m._data[10] = 2.0 * nf;
+            m._data[12] = (left + right) * lr;
+            m._data[13] = (top + bottom) * bt;
+            m._data[14] = (farCLip + nearClip) * nf;
+            return m;
+        };
+        Martix4.tranlstion = function (position) {
+            var m = new Martix4();
+            m._data[12] = position.x;
+            m._data[13] = position.y;
+            m._data[14] = position.z;
+            return m;
+        };
+        return Martix4;
+    }());
+    TSE.Martix4 = Martix4;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var Vector3 = (function () {
+        function Vector3(x, y, z) {
+            if (x === void 0) { x = 0; }
+            if (y === void 0) { y = 0; }
+            if (z === void 0) { z = 0; }
+            this._x = x;
+            this._y = y;
+            this._z = z;
+        }
+        Object.defineProperty(Vector3.prototype, "x", {
+            get: function () {
+                return this._x;
+            },
+            set: function (value) {
+                this._x = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Vector3.prototype, "y", {
+            get: function () {
+                return this._y;
+            },
+            set: function (value) {
+                this._y = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Vector3.prototype, "z", {
+            get: function () {
+                return this._z;
+            },
+            set: function (value) {
+                this._z = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Vector3.prototype.toArray = function () {
+            return [this._x, this.y, this.z];
+        };
+        Vector3.prototype.toFloat32Array = function () {
+            return new Float32Array(this.toArray());
+        };
+        return Vector3;
+    }());
+    TSE.Vector3 = Vector3;
 })(TSE || (TSE = {}));

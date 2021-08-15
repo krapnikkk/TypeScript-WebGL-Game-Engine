@@ -5,13 +5,17 @@
       "../app.ts",
       "../core/engine.ts",
       "../core/gl/gl.ts",
-      "../core/gl/shader.ts"
+      "../core/gl/glBuffer.ts",
+      "../core/gl/shader.ts",
+      "../core/graphics/sprite.ts",
+      "../core/math/matrix4.ts",
+      "../core/math/vector.ts"
     ],
     "js": {
       "sections": [
         {
           "pos": 0,
-          "end": 4259,
+          "end": 16068,
           "kind": "text"
         }
       ]
@@ -20,7 +24,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 691,
+          "end": 2836,
           "kind": "text"
         }
       ]
