@@ -1,6 +1,6 @@
 module TSE {
     export class MessageBus {
-        private static _subscriptions: { [code: string]: IMessageHandler[] };
+        private static _subscriptions: { [code: string]: IMessageHandler[] } = {};
         private static _normalQueueMessagePerUpdate: number = 10;
         private static _normalMessageQueue: MessageSubscriptionNode[] = [];
 
@@ -9,7 +9,7 @@ module TSE {
         }
 
         public static addSubscription(code: string, handler: IMessageHandler): void {
-            if (MessageBus._subscriptions[code] !== undefined) {
+            if (MessageBus._subscriptions[code] === undefined) {
                 MessageBus._subscriptions[code] = [];
             }
 
