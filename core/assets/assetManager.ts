@@ -29,7 +29,7 @@ module TSE {
 
         public static onAssetLoaded(asset:IAsset):void{
             AssetManager._loaderAssets[asset.name] = asset;
-            Message.send(MESSAGE_ASSET_LOADED_ASSET_LOADED,this,asset);
+            Message.send(MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + asset.name,this,asset);
         }
 
         public static isAssetLoaded(assetName: string): boolean {

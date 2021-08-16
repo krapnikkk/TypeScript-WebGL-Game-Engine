@@ -16,7 +16,7 @@ module TSE {
     }
     export class ImageAssetLoader implements IAssetLoader {
         public get supportedExtensions(): string[] {
-            return ["png", "jpg"];
+            return ["png", "jpg","jpeg"];
         }
 
         loadAsset(assetName: string): void {
