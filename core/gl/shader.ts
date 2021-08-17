@@ -1,5 +1,5 @@
 module TSE {
-    export class Shader {
+    export abstract class Shader {
         private _name: string;
         private _program: WebGLProgram;
         private _attributes: { [name: string]: number } = {};
@@ -10,8 +10,15 @@ module TSE {
          * @param vertexSource the source of the vertex shader
          * @param fragmentSource the source of the fragment shader
          */
-        public constructor(name: string, vertexSource: string, fragmentSource: string) {
+        public constructor(name: string ) {
             this._name = name;
+        }
+
+        public get name(): string {
+            return this._name;
+        }
+
+        protected load(vertexSource: string, fragmentSource: string){
             let vertexShader = this.loadShader(vertexSource, gl.VERTEX_SHADER);
             let fragmentShader = this.loadShader(fragmentSource, gl.FRAGMENT_SHADER);
 
@@ -19,10 +26,6 @@ module TSE {
 
             this.detectAttributes();
             this.detectUniforms();
-        }
-
-        public get name(): string {
-            return this._name;
         }
 
         private loadShader(source: string, shaderType: number) {

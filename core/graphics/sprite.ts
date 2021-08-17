@@ -55,6 +55,13 @@ module TSE {
         }
 
         public draw(shader: Shader): void {
+            let colorLocation = shader.getUniformLocation("u_tint");
+            gl.uniform4f(colorLocation, 1, 1, 1, 1);
+
+
+            let modelLocation = shader.getUniformLocation("u_model");
+            gl.uniformMatrix4fv(modelLocation, false, new Float32Array(Martix4.tranlstion(this.position).data));
+
             this._texture.activateAndBind(0);
             let diffuseLocation = shader.getUniformLocation("u_diffuse");
             gl.uniform1i(diffuseLocation, 0);
