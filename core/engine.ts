@@ -17,7 +17,7 @@ module TSE {
             this._shader.use();
 
             this._projection = Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
-            this._sprite = new Sprite("test","./assets/texture/sky.jpeg");
+            this._sprite = new Sprite("test", "./assets/texture/sky.jpeg");
             this._sprite.load();
             this._sprite.position.x = 200;
 
@@ -29,13 +29,16 @@ module TSE {
             if (this._canvas !== undefined) {
                 this._canvas.width = window.innerWidth;
                 this._canvas.height = window.innerHeight;
-                // gl.viewport(0, 0, this._canvas.width, this._canvas.height);
-                gl.viewport(-1, 1, 1, -1);
+                this._projection = Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
+                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
             }
         }
 
         private loop(): void {
             MessageBus.update(0);
+
+
+
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             let colorPosition = this._shader.getUniformLocation("u_tint");
