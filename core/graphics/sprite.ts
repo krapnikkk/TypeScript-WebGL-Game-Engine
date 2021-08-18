@@ -1,21 +1,22 @@
 module TSE {
     export class Sprite {
         private _name: string;
-        private _textureName: string;
         private _width: number;
         private _height: number;
 
+        private _buffer: GLBuffer;
+        private _materialName: string;
+        private _material: Material;
+
         public position: Vector3 = new Vector3();
 
-        private _buffer: GLBuffer;
-        private _texture: Texture;
 
-        public constructor(name: string, textureName: string, width: number = 100, height: number = 100) {
+        public constructor(name: string, materialName: string, width: number = 100, height: number = 100) {
             this._name = name;
             this._width = width;
             this._height = height;
-            this._textureName = textureName;
-            this._texture = TextureManager.getTexture(textureName);
+            this._materialName = materialName;
+            this._material = MaterialManager.getMaterial(materialName);
         }
 
         public get name(): string {
@@ -56,22 +57,25 @@ module TSE {
 
         public draw(shader: Shader): void {
             let colorLocation = shader.getUniformLocation("u_tint");
-            gl.uniform4f(colorLocation, 1, 1, 1, 1);
-
+            gl.uniform4fv(colorLocation, this._material.tint.toFloat32Array());
 
             let modelLocation = shader.getUniformLocation("u_model");
             gl.uniformMatrix4fv(modelLocation, false, new Float32Array(Martix4.tranlstion(this.position).data));
 
-            this._texture.activateAndBind(0);
-            let diffuseLocation = shader.getUniformLocation("u_diffuse");
-            gl.uniform1i(diffuseLocation, 0);
+            if(this._material.diffuseTexture){
+                this._material.diffuseTexture.activateAndBind(0);
+                let diffuseLocation = shader.getUniformLocation("u_diffuse");
+                gl.uniform1i(diffuseLocation, 0);
+            }
+
             this._buffer.bind();
             this._buffer.draw();
         }
 
         public destory(): void {
             this._buffer.destroy();
-            TextureManager.releaseTexture(this._textureName)
+            MaterialManager.releaseMaterial(this._materialName);
+            this._material = null;
         }
     }
 }

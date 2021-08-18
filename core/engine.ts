@@ -15,8 +15,11 @@ module TSE {
             this._basicShader = new BasicShader();
             this._basicShader.use();
 
+            // load  material
+            MaterialManager.registerMaterial(new Material("create","./assets/texture/sky.jpeg",new Color(255,128,0,255)))
+
             this._projection = Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
-            this._sprite = new Sprite("test", "./assets/texture/sky.jpeg");
+            this._sprite = new Sprite("test", "create");
             this._sprite.load();
             this._sprite.position.x = 200;
 
