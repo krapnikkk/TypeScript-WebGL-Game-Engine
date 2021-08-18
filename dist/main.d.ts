@@ -2,14 +2,13 @@ declare let engine: TSE.Engine;
 declare module TSE {
     class Engine {
         private _canvas;
-        private _shader;
+        private _basicShader;
         private _projection;
         private _sprite;
         constructor();
         start(): void;
         resize(): void;
         private loop;
-        private loadShaders;
     }
 }
 declare module TSE {
@@ -86,13 +85,14 @@ declare module TSE {
     }
 }
 declare module TSE {
-    class Shader {
+    abstract class Shader {
         private _name;
         private _program;
         private _attributes;
         private _uniforms;
-        constructor(name: string, vertexSource: string, fragmentSource: string);
+        constructor(name: string);
         get name(): string;
+        protected load(vertexSource: string, fragmentSource: string): void;
         private loadShader;
         private createProgram;
         use(): void;
@@ -103,15 +103,75 @@ declare module TSE {
     }
 }
 declare module TSE {
+    class BasicShader extends Shader {
+        constructor();
+        private getVertexSource;
+        private getFragmentSource;
+    }
+}
+declare module TSE {
+    class Color {
+        private _r;
+        private _g;
+        private _b;
+        private _a;
+        constructor(r?: number, g?: number, b?: number, a?: number);
+        get r(): number;
+        set r(value: number);
+        get rFloat(): number;
+        get g(): number;
+        set g(value: number);
+        get gFloat(): number;
+        get b(): number;
+        set b(value: number);
+        get bFloat(): number;
+        get a(): number;
+        set a(value: number);
+        get aFloat(): number;
+        toArray(): number[];
+        toFloatArray(): number[];
+        toFloat32Array(): Float32Array;
+        static black(): Color;
+        static white(): Color;
+        static red(): Color;
+        static green(): Color;
+        static blue(): Color;
+    }
+}
+declare module TSE {
+    class Material {
+        private _name;
+        private _diffuseTextureName;
+        private _diffuseTexture;
+        private _tint;
+        constructor(name: string, diffuseTextureName: string, tint: Color);
+        get tint(): Color;
+        get name(): string;
+        get diffuseTexture(): Texture;
+        get diffuseTextureName(): string;
+        set diffuseTextureName(value: string);
+        destory(): void;
+    }
+}
+declare module TSE {
+    class MaterialManager {
+        private static _materials;
+        private constructor();
+        static registerMaterial(material: Material): void;
+        static getMaterial(materialName: string): Material;
+        static releaseMaterial(materialName: string): void;
+    }
+}
+declare module TSE {
     class Sprite {
         private _name;
-        private _textureName;
         private _width;
         private _height;
-        position: Vector3;
         private _buffer;
-        private _texture;
-        constructor(name: string, textureName: string, width?: number, height?: number);
+        private _materialName;
+        private _material;
+        position: Vector3;
+        constructor(name: string, materialName: string, width?: number, height?: number);
         get name(): string;
         load(): void;
         update(time: number): void;

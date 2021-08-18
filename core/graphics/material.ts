@@ -14,8 +14,15 @@ module TSE {
             }
         }
 
+        public get tint(): Color {
+            return this._tint;
+        }
         public get name(): string {
             return this._name;
+        }
+
+        public get diffuseTexture(): Texture {
+            return this._diffuseTexture;
         }
 
         public get diffuseTextureName(): string {
