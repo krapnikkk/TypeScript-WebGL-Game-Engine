@@ -40,5 +40,19 @@ module TSE {
             return new Float32Array(this.toArray());
         }
 
+        public static get zero():Vector3{
+            return new Vector3();
+        }
+
+        public static get one():Vector3{
+            return new Vector3(1,1,1);
+        }
+
+        public copyFrom(vector3:Vector3):void{
+            this._x = vector3.x;
+            this._y = vector3.y;
+            this._z = vector3.z;
+        }
+
     }
 }
