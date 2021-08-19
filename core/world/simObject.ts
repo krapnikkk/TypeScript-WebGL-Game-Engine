@@ -4,15 +4,17 @@ module TSE {
         private _children: SimObject[] = [];
         private _parent: SimObject;
         private _isLoaded: boolean = false;
+        private _scene: Scene;
 
         private _localMatrix: Martix4 = Martix4.identity();
         private _worldMatrix: Martix4 = Martix4.identity();
 
         public name: string;
         public transform: Transform = new Transform();
-        public constructor(id: number, name: string) {
+        public constructor(id: number, name: string, scene?: Scene) {
             this._id = id;
             this.name = name;
+            this._scene = scene;
         }
 
         public get id(): number {
@@ -34,6 +36,7 @@ module TSE {
         public addChild(child: SimObject): void {
             child._parent = this;
             this._children.push(child);
+            child.onAdded(this._scene);
         }
 
         public removeChild(child: SimObject): void {
@@ -74,6 +77,10 @@ module TSE {
             for (let child of this._children) {
                 child.render(shader);
             }
+        }
+
+        public onAdded(scene: Scene): void {
+            this._scene = scene;
         }
     }
 }
