@@ -27,7 +27,11 @@ module TSE {
             this._root.load();
         }
 
-        public update(shader: Shader): void {
+        public update(time: number): void {
+            this._root.update(time);
+        }
+
+        public render(shader: Shader): void {
             this._root.render(shader);
         }
     }
