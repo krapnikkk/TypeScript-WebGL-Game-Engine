@@ -217,6 +217,18 @@ declare module TSE {
         static identity(): Martix4;
         static orthographic(left: number, right: number, bottom: number, top: number, nearClip: number, farCLip: number): Martix4;
         static tranlstion(position: Vector3): Martix4;
+        static rotationZ(angleInRadians: number): Martix4;
+        static multiply(a: Martix4, b: Martix4): Martix4;
+        static scale(scale: Vector3): Martix4;
+    }
+}
+declare module TSE {
+    class Transform {
+        position: Vector3;
+        rotation: Vector3;
+        scale: Vector3;
+        copyFrom(transform: Transform): void;
+        getTransformationMatrix(): Martix4;
     }
 }
 declare module TSE {
@@ -246,6 +258,9 @@ declare module TSE {
         set z(value: number);
         toArray(): number[];
         toFloat32Array(): Float32Array;
+        static get zero(): Vector3;
+        static get one(): Vector3;
+        copyFrom(vector3: Vector3): void;
     }
 }
 declare module TSE {
@@ -287,5 +302,80 @@ declare module TSE {
         message: Message;
         handler: IMessageHandler;
         constructor(message: Message, handler: IMessageHandler);
+    }
+}
+declare module TSE {
+    class Scene {
+        private _root;
+        constructor();
+        get root(): SimObject;
+        get isLoaded(): boolean;
+        addObject(object: SimObject): void;
+        getObject(name: string): SimObject;
+        load(): void;
+        update(time: number): void;
+        render(shader: Shader): void;
+    }
+}
+declare module TSE {
+    class SimObject {
+        private _id;
+        private _children;
+        private _parent;
+        private _isLoaded;
+        private _scene;
+        private _localMatrix;
+        private _worldMatrix;
+        name: string;
+        transform: Transform;
+        constructor(id: number, name: string, scene?: Scene);
+        get id(): number;
+        get parent(): SimObject;
+        get worldMatrix(): Martix4;
+        get isLoaded(): boolean;
+        addChild(child: SimObject): void;
+        removeChild(child: SimObject): void;
+        getObjectByName(name: string): SimObject;
+        load(): void;
+        update(time: number): void;
+        render(shader: Shader): void;
+        onAdded(scene: Scene): void;
+    }
+}
+declare module TSE {
+    enum ZoneState {
+        UNINITALIZED = 0,
+        LOADING = 1,
+        UPDATEING = 2
+    }
+    class Zone {
+        private _id;
+        private _name;
+        private _description;
+        private _scene;
+        private _state;
+        constructor(id: number, name: string, description: string);
+        get id(): number;
+        get name(): string;
+        get description(): string;
+        get scene(): Scene;
+        load(): void;
+        unload(): void;
+        update(time: number): void;
+        render(shader: Shader): void;
+        onActivated(): void;
+        onDeactivated(): void;
+    }
+}
+declare module TSE {
+    class ZoneManager {
+        private static _globalZoneID;
+        private static _zones;
+        private static _activeZone;
+        private constructor();
+        static createZone(name: string, description: string): number;
+        static changeZone(id: number): void;
+        static update(time: number): void;
+        static render(shader: Shader): void;
     }
 }

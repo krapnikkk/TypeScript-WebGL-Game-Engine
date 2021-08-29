@@ -19,12 +19,17 @@
       "../core/graphics/texture.ts",
       "../core/graphics/textureManager.ts",
       "../core/math/matrix4.ts",
+      "../core/math/transform.ts",
       "../core/math/vector2.ts",
       "../core/math/vector3.ts",
       "../core/message/IMessageHandler.ts",
       "../core/message/message.ts",
       "../core/message/messageBus.ts",
-      "../core/message/messageSubscriptionNode.ts"
+      "../core/message/messageSubscriptionNode.ts",
+      "../core/world/scene.ts",
+      "../core/world/simObject.ts",
+      "../core/world/zone.ts",
+      "../core/world/zoneManager.ts"
     ],
     "js": {
       "sections": [
@@ -36,7 +41,7 @@
         },
         {
           "pos": 763,
-          "end": 40413,
+          "end": 53243,
           "kind": "text"
         }
       ],
@@ -50,7 +55,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 8526,
+          "end": 11131,
           "kind": "text"
         }
       ]

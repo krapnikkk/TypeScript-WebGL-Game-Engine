@@ -15,8 +15,12 @@ module TSE {
             this._basicShader = new BasicShader();
             this._basicShader.use();
 
+
+            let zoneID = ZoneManager.createZone("testZone", "a simple test zone");
+            ZoneManager.changeZone(zoneID);
+
             // load  material
-            MaterialManager.registerMaterial(new Material("create","./assets/texture/sky.jpeg",new Color(255,128,0,255)))
+            MaterialManager.registerMaterial(new Material("create", "./assets/texture/sky.jpeg", new Color(255, 128, 0, 255)))
 
             this._projection = Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
             this._sprite = new Sprite("test", "create");
@@ -38,12 +42,14 @@ module TSE {
 
         private loop(): void {
             MessageBus.update(0);
-            
+            ZoneManager.update(0);
             gl.clear(gl.COLOR_BUFFER_BIT);
+
+            ZoneManager.render(this._basicShader);
 
             let projectionPosition = this._basicShader.getUniformLocation("u_projection");
             gl.uniformMatrix4fv(projectionPosition, false, new Float32Array(this._projection.data));
-            
+
             this._sprite.draw(this._basicShader);
 
             requestAnimationFrame(this.loop.bind(this));
