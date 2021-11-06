@@ -1,0 +1,20 @@
+{
+  "name": "tse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "watch": "tsc -watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krapnikkk/TypeScript-WebGL-Game-Engine.git"
+  },
+  "keywords": [],
+  "author": "krapnik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/krapnikkk/TypeScript-WebGL-Game-Engine/issues"
+  },
+  "homepage": "https://github.com/krapnikkk/TypeScript-WebGL-Game-Engine#readme"
+}
