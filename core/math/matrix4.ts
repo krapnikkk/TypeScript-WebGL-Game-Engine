@@ -46,6 +46,34 @@ module TSE {
             return m;
         }
 
+        public static rotationX( angleInRadians: number ): Martix4 {
+            let m = new Martix4();
+
+            let c = Math.cos( angleInRadians );
+            let s = Math.sin( angleInRadians );
+
+            m._data[5] = c;
+            m._data[6] = s;
+            m._data[9] = -s;
+            m._data[10] = c;
+
+            return m;
+        }
+
+        public static rotationY( angleInRadians: number ): Martix4 {
+            let m = new Martix4();
+
+            let c = Math.cos( angleInRadians );
+            let s = Math.sin( angleInRadians );
+
+            m._data[0] = c;
+            m._data[2] = -s;
+            m._data[8] = s;
+            m._data[10] = c;
+
+            return m;
+        }
+
         public static rotationZ(angleInRadians: number): Martix4 {
             let m = new Martix4();
             let c = Math.cos(angleInRadians);
@@ -57,6 +85,15 @@ module TSE {
             m._data[5] = c;
 
             return m;
+        }
+
+        public static rotationXYZ( xRadians: number, yRadians: number, zRadians: number ): Martix4 {
+            let rx = Martix4.rotationX( xRadians );
+            let ry = Martix4.rotationY( yRadians );
+            let rz = Martix4.rotationZ( zRadians );
+
+            // ZYX
+            return Martix4.multiply( Martix4.multiply( rz, ry ), rx );
         }
 
         public static multiply(a: Martix4, b: Martix4): Martix4 {

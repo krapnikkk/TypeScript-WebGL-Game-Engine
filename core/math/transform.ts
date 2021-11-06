@@ -14,7 +14,8 @@ module TSE {
             let translation = Martix4.translation(this.position);
 
             // todo add x & y for 3d.
-            let rotation = Martix4.rotationZ(this.rotation.z);
+            // let rotation = Martix4.rotationZ(this.rotation.z);
+            let rotation = Martix4.rotationXYZ(this.rotation.x, this.rotation.y, this.rotation.z);
             let scale = Martix4.scale(this.scale);
 
             // T * R * S
