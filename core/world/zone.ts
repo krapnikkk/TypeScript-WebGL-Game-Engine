@@ -9,7 +9,7 @@ module TSE {
         private _name: string;
         private _description: string;
         private _scene: Scene;
-        private _state: ZoneState;
+        private _state: ZoneState = ZoneState.UNINITALIZED;
 
         public constructor(id: number, name: string, description: string) {
             this._id = id;
@@ -37,7 +37,7 @@ module TSE {
         public load(): void {
             this._state = ZoneState.LOADING;
             this.scene.load();
-            this._state === ZoneState.LOADING
+            this._state = ZoneState.UPDATEING;
         }
 
         public unload(): void {

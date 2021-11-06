@@ -5,6 +5,7 @@ module TSE {
         private _parent: SimObject;
         private _isLoaded: boolean = false;
         private _scene: Scene;
+        private _components: BaseComponent[] = [];
 
         private _localMatrix: Martix4 = Martix4.identity();
         private _worldMatrix: Martix4 = Martix4.identity();
@@ -60,16 +61,28 @@ module TSE {
             return null;
         }
 
+        public addComponent(component:BaseComponent):void{
+            this._components.push(component);
+        }
+
         public load(): void {
             this._isLoaded = true;
             for (let child of this._children) {
                 child.load();
             }
+            for (let component of this._components) {
+                component.load();
+            }
         }
 
         public update(time: number): void {
+            this._localMatrix = this.transform.getTransformationMatrix();
+            this.updateWorldMatrix((this.parent!==undefined)?this.parent.worldMatrix:undefined);
             for (let child of this._children) {
                 child.update(time);
+            }
+            for (let component of this._components) {
+                component.update(time);
             }
         }
 
@@ -77,10 +90,22 @@ module TSE {
             for (let child of this._children) {
                 child.render(shader);
             }
+
+            for (let component of this._components) {
+                component.render(shader);
+            }
         }
 
         public onAdded(scene: Scene): void {
             this._scene = scene;
+        }
+
+        private updateWorldMatrix(parentMatrix:Martix4):void{
+            if(parentMatrix!== undefined){
+                this._worldMatrix = Martix4.multiply(parentMatrix,this._localMatrix);
+            }else{
+                this._worldMatrix.copyFrom(this._localMatrix);
+            }
         }
     }
 }

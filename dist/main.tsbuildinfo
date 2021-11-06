@@ -8,6 +8,8 @@
       "../core/assets/IAssets.ts",
       "../core/assets/assetManager.ts",
       "../core/assets/imageAssetLoader.ts",
+      "../core/components/BaseComponent.ts",
+      "../core/components/SpriteComponent.ts",
       "../core/gl/gl.ts",
       "../core/gl/glBuffer.ts",
       "../core/gl/shader.ts",
@@ -29,6 +31,7 @@
       "../core/world/scene.ts",
       "../core/world/simObject.ts",
       "../core/world/zone.ts",
+      "../core/world/testZone.ts",
       "../core/world/zoneManager.ts"
     ],
     "js": {
@@ -41,7 +44,7 @@
         },
         {
           "pos": 763,
-          "end": 53243,
+          "end": 57015,
           "kind": "text"
         }
       ],
@@ -55,7 +58,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 11131,
+          "end": 12018,
           "kind": "text"
         }
       ]

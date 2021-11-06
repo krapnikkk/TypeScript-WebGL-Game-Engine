@@ -16,6 +16,14 @@ module TSE {
             return ZoneManager._globalZoneID;
         }
 
+        // todo
+        public static createTestZone():number{
+            ZoneManager._globalZoneID++;
+            let zone = new TestZone(ZoneManager._globalZoneID, "test", "a simple test zone");
+            ZoneManager._zones[ZoneManager._globalZoneID] = zone;
+            return ZoneManager._globalZoneID;
+        }
+
         public static changeZone(id: number): void {
             if (ZoneManager._activeZone !== undefined) {
                 ZoneManager._activeZone.onDeactivated();

@@ -52,6 +52,26 @@ declare module TSE {
     }
 }
 declare module TSE {
+    abstract class BaseComponent {
+        protected _owner: SimObject;
+        name: string;
+        constructor(name: string);
+        get owner(): SimObject;
+        setOwner(owner: SimObject): void;
+        load(): void;
+        update(time: number): void;
+        render(shader: Shader): void;
+    }
+}
+declare module TSE {
+    class SpriteComponent extends BaseComponent {
+        private _sprite;
+        constructor(name: string, materialName: string);
+        load(): void;
+        render(shader: Shader): void;
+    }
+}
+declare module TSE {
     let gl: WebGLRenderingContext;
     class GLUtilities {
         static initialize(elementId?: string): HTMLCanvasElement;
@@ -220,6 +240,7 @@ declare module TSE {
         static rotationZ(angleInRadians: number): Martix4;
         static multiply(a: Martix4, b: Martix4): Martix4;
         static scale(scale: Vector3): Martix4;
+        copyFrom(m: Martix4): void;
     }
 }
 declare module TSE {
@@ -324,6 +345,7 @@ declare module TSE {
         private _parent;
         private _isLoaded;
         private _scene;
+        private _components;
         private _localMatrix;
         private _worldMatrix;
         name: string;
@@ -336,10 +358,12 @@ declare module TSE {
         addChild(child: SimObject): void;
         removeChild(child: SimObject): void;
         getObjectByName(name: string): SimObject;
+        addComponent(component: BaseComponent): void;
         load(): void;
         update(time: number): void;
         render(shader: Shader): void;
         onAdded(scene: Scene): void;
+        private updateWorldMatrix;
     }
 }
 declare module TSE {
@@ -368,12 +392,20 @@ declare module TSE {
     }
 }
 declare module TSE {
+    class TestZone extends Zone {
+        private _testSprite;
+        private _testObject;
+        load(): void;
+    }
+}
+declare module TSE {
     class ZoneManager {
         private static _globalZoneID;
         private static _zones;
         private static _activeZone;
         private constructor();
         static createZone(name: string, description: string): number;
+        static createTestZone(): number;
         static changeZone(id: number): void;
         static update(time: number): void;
         static render(shader: Shader): void;

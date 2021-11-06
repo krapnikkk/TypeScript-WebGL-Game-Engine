@@ -125,6 +125,12 @@ module TSE {
             return m;
         }
 
+        public copyFrom(m:Martix4):void{
+            for(let i = 0;i<16;i++){
+                this._data[i] = m._data[i];
+            }
+        }
+
 
     }
 }
