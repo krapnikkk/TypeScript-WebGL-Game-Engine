@@ -45,13 +45,13 @@ module TSE {
         }
 
         public update(time: number): void {
-            if (this._state === ZoneState.LOADING) {
+            if (this._state === ZoneState.UPDATEING) {
                 this._scene.update(time);
             }
         }
 
         public render(shader: Shader): void {
-            if (this._state === ZoneState.LOADING) {
+            if (this._state === ZoneState.UPDATEING) {
                 this._scene.render(shader);
             }
         }

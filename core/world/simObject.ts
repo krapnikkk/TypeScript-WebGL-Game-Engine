@@ -63,6 +63,7 @@ module TSE {
 
         public addComponent(component:BaseComponent):void{
             this._components.push(component);
+            component.setOwner(this);
         }
 
         public load(): void {
@@ -77,7 +78,7 @@ module TSE {
 
         public update(time: number): void {
             this._localMatrix = this.transform.getTransformationMatrix();
-            this.updateWorldMatrix((this.parent!==undefined)?this.parent.worldMatrix:undefined);
+            this.updateWorldMatrix((this.parent!==undefined)?this._parent.worldMatrix:undefined);
             for (let child of this._children) {
                 child.update(time);
             }
@@ -100,9 +101,9 @@ module TSE {
             this._scene = scene;
         }
 
-        private updateWorldMatrix(parentMatrix:Martix4):void{
-            if(parentMatrix!== undefined){
-                this._worldMatrix = Martix4.multiply(parentMatrix,this._localMatrix);
+        private updateWorldMatrix(parentWorldMatrix:Martix4):void{
+            if(parentWorldMatrix!== undefined){
+                this._worldMatrix = Martix4.multiply(parentWorldMatrix,this._localMatrix);
             }else{
                 this._worldMatrix.copyFrom(this._localMatrix);
             }

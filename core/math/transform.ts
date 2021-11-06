@@ -11,14 +11,14 @@ module TSE {
         }
 
         public getTransformationMatrix(): Martix4 {
-            let tranlstion = Martix4.tranlstion(this.position);
+            let translation = Martix4.translation(this.position);
 
             // todo add x & y for 3d.
             let rotation = Martix4.rotationZ(this.rotation.z);
             let scale = Martix4.scale(this.scale);
 
             // T * R * S
-            return Martix4.multiply(Martix4.multiply(tranlstion, rotation), scale);
+            return Martix4.multiply(Martix4.multiply(translation, rotation), scale);
         }
     }
 }

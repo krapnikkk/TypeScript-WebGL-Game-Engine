@@ -55,13 +55,14 @@ module TSE {
 
         }
 
-        public draw(shader: Shader): void {
+        public draw(shader: Shader,model:Martix4): void {
             let colorLocation = shader.getUniformLocation("u_tint");
             gl.uniform4fv(colorLocation, this._material.tint.toFloat32Array());
 
             let modelLocation = shader.getUniformLocation("u_model");
-            gl.uniformMatrix4fv(modelLocation, false, new Float32Array(Martix4.tranlstion(this.position).data));
-
+            
+            // gl.uniformMatrix4fv(modelLocation, false, new Float32Array(Martix4.translation(this.position).data));
+            gl.uniformMatrix4fv(modelLocation, false, model.toFloat32Array());
             if(this._material.diffuseTexture){
                 this._material.diffuseTexture.activateAndBind(0);
                 let diffuseLocation = shader.getUniformLocation("u_diffuse");

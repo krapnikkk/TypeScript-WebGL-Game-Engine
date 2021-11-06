@@ -64,7 +64,7 @@ module TSE {
             this._width = asset.width;
             this._height = asset.height;
             this.bind();
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+            // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
             gl.texImage2D(gl.TEXTURE_2D, LEVEL, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, asset.data)
 
             if (this.isPowerOf2()) {

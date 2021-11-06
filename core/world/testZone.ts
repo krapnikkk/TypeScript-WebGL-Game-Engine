@@ -11,11 +11,12 @@ module TSE{
             this._testObject = new SimObject(0,"test");
             this._testSprite = new SpriteComponent("test","create");
             this._testObject.addComponent(this._testSprite);
-
-            this._testObject.transform.position.x = 100;
-            this._testObject.transform.position.y = 100;
+            console.log(this._testObject.transform);
+            this._testObject.transform.position.x = 20;
+            this._testObject.transform.position.y = 20;
+            // console.log(this._testObject.transform.position);
             this.scene.addObject(this._testObject);
-
+            console.log(this.scene);
             super.load();
         }
     }

@@ -11,7 +11,7 @@ module TSE{
         }
 
         public render(shader:Shader):void{
-            this._sprite.draw(shader);
+            this._sprite.draw(shader,this.owner.worldMatrix);
             super.render(shader);
         }
 

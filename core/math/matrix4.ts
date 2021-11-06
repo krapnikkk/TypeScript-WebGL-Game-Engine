@@ -37,7 +37,7 @@ module TSE {
             return m;
         }
 
-        public static tranlstion(position: Vector3): Martix4 {
+        public static translation(position: Vector3): Martix4 {
             let m = new Martix4();
             m._data[12] = position.x;
             m._data[13] = position.y;
@@ -53,8 +53,8 @@ module TSE {
 
             m._data[0] = c;
             m._data[1] = s;
-            m._data[5] = -s;
-            m._data[6] = c;
+            m._data[4] = -s;
+            m._data[5] = c;
 
             return m;
         }
@@ -113,6 +113,10 @@ module TSE {
             m._data[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
 
             return m;
+        }
+
+        public toFloat32Array():Float32Array{
+            return new Float32Array(this._data);
         }
 
         public static scale(scale: Vector3): Martix4 {

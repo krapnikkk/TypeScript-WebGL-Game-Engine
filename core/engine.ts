@@ -15,17 +15,14 @@ module TSE {
             this._basicShader = new BasicShader();
             this._basicShader.use();
 
-
-            
-
             // load  material
             MaterialManager.registerMaterial(new Material("create", "./assets/texture/sky.jpeg", new Color(255, 128, 0, 255)))
 
             let zoneID = ZoneManager.createTestZone();
             ZoneManager.changeZone(zoneID);
 
-            this._projection = Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
 
+            this._projection = Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);
 
 
             this.resize();
@@ -36,7 +33,7 @@ module TSE {
             if (this._canvas !== undefined) {
                 this._canvas.width = window.innerWidth;
                 this._canvas.height = window.innerHeight;
-                this._projection = Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
+                this._projection = Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);
                 gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
             }
         }
