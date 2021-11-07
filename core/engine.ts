@@ -11,6 +11,7 @@ module TSE {
         public start(): void {
             this._canvas = GLUtilities.initialize();
             AssetManager.initialize();
+            ZoneManager.initialize();
             gl.clearColor(0, 0, 0, 1);
             this._basicShader = new BasicShader();
             this._basicShader.use();
@@ -18,8 +19,9 @@ module TSE {
             // load  material
             MaterialManager.registerMaterial(new Material("create", "./assets/texture/sky.jpeg", new Color(255, 128, 0, 255)))
 
-            let zoneID = ZoneManager.createTestZone();
-            ZoneManager.changeZone(zoneID);
+            // let zoneID = ZoneManager.createTestZone();
+            // todo id from config
+            ZoneManager.changeZone(0);
 
 
             this._projection = Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);

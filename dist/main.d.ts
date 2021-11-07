@@ -52,6 +52,18 @@ declare module TSE {
     }
 }
 declare module TSE {
+    class JsonAsset implements IAsset {
+        readonly name: string;
+        readonly data: any;
+        constructor(name: any, data: string);
+    }
+    class JsonAssetLoader implements IAssetLoader {
+        get supportedExtensions(): string[];
+        loadAsset(assetName: string): void;
+        private onJsonLoaded;
+    }
+}
+declare module TSE {
     abstract class BaseComponent {
         protected _owner: SimObject;
         name: string;
@@ -195,7 +207,7 @@ declare module TSE {
         get name(): string;
         load(): void;
         update(time: number): void;
-        draw(shader: Shader): void;
+        draw(shader: Shader, model: Martix4): void;
         destory(): void;
     }
 }
@@ -236,9 +248,13 @@ declare module TSE {
         get data(): number[];
         static identity(): Martix4;
         static orthographic(left: number, right: number, bottom: number, top: number, nearClip: number, farCLip: number): Martix4;
-        static tranlstion(position: Vector3): Martix4;
+        static translation(position: Vector3): Martix4;
+        static rotationX(angleInRadians: number): Martix4;
+        static rotationY(angleInRadians: number): Martix4;
         static rotationZ(angleInRadians: number): Martix4;
+        static rotationXYZ(xRadians: number, yRadians: number, zRadians: number): Martix4;
         static multiply(a: Martix4, b: Martix4): Martix4;
+        toFloat32Array(): Float32Array;
         static scale(scale: Vector3): Martix4;
         copyFrom(m: Martix4): void;
     }
@@ -250,6 +266,7 @@ declare module TSE {
         scale: Vector3;
         copyFrom(transform: Transform): void;
         getTransformationMatrix(): Martix4;
+        setFromJson(json: any): void;
     }
 }
 declare module TSE {
@@ -282,6 +299,7 @@ declare module TSE {
         static get zero(): Vector3;
         static get one(): Vector3;
         copyFrom(vector3: Vector3): void;
+        setFromJson(json: any): void;
     }
 }
 declare module TSE {
@@ -377,36 +395,44 @@ declare module TSE {
         private _name;
         private _description;
         private _scene;
+        private _globalId;
         private _state;
         constructor(id: number, name: string, description: string);
         get id(): number;
         get name(): string;
         get description(): string;
         get scene(): Scene;
+        initialize(zoneData: any): void;
         load(): void;
         unload(): void;
         update(time: number): void;
         render(shader: Shader): void;
         onActivated(): void;
         onDeactivated(): void;
+        private loadSimObject;
     }
 }
 declare module TSE {
     class TestZone extends Zone {
+        private _parentObject;
+        private _parentSprite;
         private _testSprite;
         private _testObject;
         load(): void;
+        update(time: number): void;
     }
 }
 declare module TSE {
-    class ZoneManager {
+    class ZoneManager implements IMessageHandler {
         private static _globalZoneID;
-        private static _zones;
+        private static _registeredZones;
         private static _activeZone;
+        private static _inst;
         private constructor();
-        static createZone(name: string, description: string): number;
-        static createTestZone(): number;
+        onMessage(message: Message): void;
+        static initialize(): void;
         static changeZone(id: number): void;
+        static loadZone(asset: JsonAsset): void;
         static update(time: number): void;
         static render(shader: Shader): void;
     }

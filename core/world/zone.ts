@@ -9,6 +9,7 @@ module TSE {
         private _name: string;
         private _description: string;
         private _scene: Scene;
+        private _globalId: number = -1;
         private _state: ZoneState = ZoneState.UNINITALIZED;
 
         public constructor(id: number, name: string, description: string) {
@@ -32,6 +33,18 @@ module TSE {
 
         public get scene(): Scene {
             return this._scene;
+        }
+
+        public initialize(zoneData: any) {
+            if (zoneData.objects === undefined) {
+                throw new Error("Zone initialization error:objects not present.");
+            }
+            for (let object in zoneData.objects) {
+                let obj = zoneData.objects[object];
+
+                this.loadSimObject(obj, this._scene.root);
+
+            }
         }
 
         public load(): void {
@@ -62,6 +75,28 @@ module TSE {
 
         public onDeactivated(): void {
 
+        }
+
+        private loadSimObject(dataSection: any, parent: SimObject): void {
+            let name: string;
+            if (dataSection.name !== undefined) {
+                name = dataSection.name;
+            }
+            this._globalId++;
+            let simObjet = new SimObject(this._globalId, name, this._scene);
+            if (dataSection.tranform !== undefined) {
+                simObjet.transform.setFromJson(dataSection.tranform);
+            }
+            if (dataSection.children !== undefined) {
+                for (let obj in dataSection.children) {
+                    let object = dataSection[obj];
+                    this.loadSimObject(object, simObjet);
+                }
+            }
+
+            if(parent !== undefined){
+                parent.addChild(simObjet);
+            }
         }
     }
 }

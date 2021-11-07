@@ -29,13 +29,13 @@ var TSE;
         Engine.prototype.start = function () {
             this._canvas = TSE.GLUtilities.initialize();
             TSE.AssetManager.initialize();
+            TSE.ZoneManager.initialize();
             TSE.gl.clearColor(0, 0, 0, 1);
             this._basicShader = new TSE.BasicShader();
             this._basicShader.use();
             TSE.MaterialManager.registerMaterial(new TSE.Material("create", "./assets/texture/sky.jpeg", new TSE.Color(255, 128, 0, 255)));
-            var zoneID = TSE.ZoneManager.createTestZone();
-            TSE.ZoneManager.changeZone(zoneID);
-            this._projection = TSE.Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
+            TSE.ZoneManager.changeZone(0);
+            this._projection = TSE.Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);
             this.resize();
             this.loop();
         };
@@ -43,7 +43,7 @@ var TSE;
             if (this._canvas !== undefined) {
                 this._canvas.width = window.innerWidth;
                 this._canvas.height = window.innerHeight;
-                this._projection = TSE.Martix4.orthographic(0, this._canvas.width, 0, this._canvas.height, -100.0, 100.0);
+                this._projection = TSE.Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);
                 TSE.gl.viewport(0, 0, TSE.gl.canvas.width, TSE.gl.canvas.height);
             }
         };
@@ -68,6 +68,7 @@ var TSE;
         }
         AssetManager.initialize = function () {
             AssetManager._loaders.push(new TSE.ImageAssetLoader());
+            AssetManager._loaders.push(new TSE.JsonAssetLoader());
         };
         AssetManager.registerLoader = function (loader) {
             AssetManager._loaders.push(loader);
@@ -155,6 +156,44 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var JsonAsset = (function () {
+        function JsonAsset(name, data) {
+            this.data = data;
+            this.name = name;
+        }
+        return JsonAsset;
+    }());
+    TSE.JsonAsset = JsonAsset;
+    var JsonAssetLoader = (function () {
+        function JsonAssetLoader() {
+        }
+        Object.defineProperty(JsonAssetLoader.prototype, "supportedExtensions", {
+            get: function () {
+                return ["json"];
+            },
+            enumerable: false,
+            configurable: true
+        });
+        JsonAssetLoader.prototype.loadAsset = function (assetName) {
+            var request = new XMLHttpRequest();
+            request.open("GET", assetName);
+            request.addEventListener("load", this.onJsonLoaded.bind(this, assetName, request));
+            request.send();
+        };
+        JsonAssetLoader.prototype.onJsonLoaded = function (assetName, request) {
+            console.log("onImageLoaded:", assetName, request);
+            if (request.readyState === request.DONE) {
+                var json = JSON.parse(request.responseText);
+                var asset = new JsonAsset(assetName, json);
+                TSE.AssetManager.onAssetLoaded(asset);
+            }
+        };
+        return JsonAssetLoader;
+    }());
+    TSE.JsonAssetLoader = JsonAssetLoader;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var BaseComponent = (function () {
         function BaseComponent(name) {
         }
@@ -194,7 +233,7 @@ var TSE;
             this._sprite.load();
         };
         SpriteComponent.prototype.render = function (shader) {
-            this._sprite.draw(shader);
+            this._sprite.draw(shader, this.owner.worldMatrix);
             _super.prototype.render.call(this, shader);
         };
         return SpriteComponent;
@@ -697,11 +736,11 @@ var TSE;
         };
         Sprite.prototype.update = function (time) {
         };
-        Sprite.prototype.draw = function (shader) {
+        Sprite.prototype.draw = function (shader, model) {
             var colorLocation = shader.getUniformLocation("u_tint");
             TSE.gl.uniform4fv(colorLocation, this._material.tint.toFloat32Array());
             var modelLocation = shader.getUniformLocation("u_model");
-            TSE.gl.uniformMatrix4fv(modelLocation, false, new Float32Array(TSE.Martix4.tranlstion(this.position).data));
+            TSE.gl.uniformMatrix4fv(modelLocation, false, model.toFloat32Array());
             if (this._material.diffuseTexture) {
                 this._material.diffuseTexture.activateAndBind(0);
                 var diffuseLocation = shader.getUniformLocation("u_diffuse");
@@ -788,7 +827,6 @@ var TSE;
             this._width = asset.width;
             this._height = asset.height;
             this.bind();
-            TSE.gl.pixelStorei(TSE.gl.UNPACK_FLIP_Y_WEBGL, 1);
             TSE.gl.texImage2D(TSE.gl.TEXTURE_2D, LEVEL, TSE.gl.RGBA, TSE.gl.RGBA, TSE.gl.UNSIGNED_BYTE, asset.data);
             if (this.isPowerOf2()) {
                 TSE.gl.generateMipmap(TSE.gl.TEXTURE_2D);
@@ -888,11 +926,31 @@ var TSE;
             m._data[14] = (farCLip + nearClip) * nf;
             return m;
         };
-        Martix4.tranlstion = function (position) {
+        Martix4.translation = function (position) {
             var m = new Martix4();
             m._data[12] = position.x;
             m._data[13] = position.y;
             m._data[14] = position.z;
+            return m;
+        };
+        Martix4.rotationX = function (angleInRadians) {
+            var m = new Martix4();
+            var c = Math.cos(angleInRadians);
+            var s = Math.sin(angleInRadians);
+            m._data[5] = c;
+            m._data[6] = s;
+            m._data[9] = -s;
+            m._data[10] = c;
+            return m;
+        };
+        Martix4.rotationY = function (angleInRadians) {
+            var m = new Martix4();
+            var c = Math.cos(angleInRadians);
+            var s = Math.sin(angleInRadians);
+            m._data[0] = c;
+            m._data[2] = -s;
+            m._data[8] = s;
+            m._data[10] = c;
             return m;
         };
         Martix4.rotationZ = function (angleInRadians) {
@@ -901,9 +959,15 @@ var TSE;
             var s = Math.sin(angleInRadians);
             m._data[0] = c;
             m._data[1] = s;
-            m._data[5] = -s;
-            m._data[6] = c;
+            m._data[4] = -s;
+            m._data[5] = c;
             return m;
+        };
+        Martix4.rotationXYZ = function (xRadians, yRadians, zRadians) {
+            var rx = Martix4.rotationX(xRadians);
+            var ry = Martix4.rotationY(yRadians);
+            var rz = Martix4.rotationZ(zRadians);
+            return Martix4.multiply(Martix4.multiply(rz, ry), rx);
         };
         Martix4.multiply = function (a, b) {
             var m = new Martix4();
@@ -957,6 +1021,9 @@ var TSE;
             m._data[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
             return m;
         };
+        Martix4.prototype.toFloat32Array = function () {
+            return new Float32Array(this._data);
+        };
         Martix4.scale = function (scale) {
             var m = new Martix4();
             m.data[0] = scale.x;
@@ -987,10 +1054,22 @@ var TSE;
             this.scale.copyFrom(transform.scale);
         };
         Transform.prototype.getTransformationMatrix = function () {
-            var tranlstion = TSE.Martix4.tranlstion(this.position);
-            var rotation = TSE.Martix4.rotationZ(this.rotation.z);
+            var translation = TSE.Martix4.translation(this.position);
+            var rotation = TSE.Martix4.rotationXYZ(this.rotation.x, this.rotation.y, this.rotation.z);
             var scale = TSE.Martix4.scale(this.scale);
-            return TSE.Martix4.multiply(TSE.Martix4.multiply(tranlstion, rotation), scale);
+            return TSE.Martix4.multiply(TSE.Martix4.multiply(translation, rotation), scale);
+        };
+        Transform.prototype.setFromJson = function (json) {
+            var position = json.position, scale = json.scale, rotation = json.rotation;
+            if (position !== undefined) {
+                this.position.setFromJson(position);
+            }
+            if (scale !== undefined) {
+                this.scale.setFromJson(scale);
+            }
+            if (rotation !== undefined) {
+                this.rotation.setFromJson(rotation);
+            }
         };
         return Transform;
     }());
@@ -1100,6 +1179,12 @@ var TSE;
             this._x = vector3.x;
             this._y = vector3.y;
             this._z = vector3.z;
+        };
+        Vector3.prototype.setFromJson = function (json) {
+            var x = json.x, y = json.y, z = json.z;
+            this._x = +x;
+            this._y = +x;
+            this._z = +x;
         };
         return Vector3;
     }());
@@ -1314,6 +1399,7 @@ var TSE;
         };
         SimObject.prototype.addComponent = function (component) {
             this._components.push(component);
+            component.setOwner(this);
         };
         SimObject.prototype.load = function () {
             this._isLoaded = true;
@@ -1328,7 +1414,7 @@ var TSE;
         };
         SimObject.prototype.update = function (time) {
             this._localMatrix = this.transform.getTransformationMatrix();
-            this.updateWorldMatrix((this.parent !== undefined) ? this.parent.worldMatrix : undefined);
+            this.updateWorldMatrix((this.parent !== undefined) ? this._parent.worldMatrix : undefined);
             for (var _i = 0, _a = this._children; _i < _a.length; _i++) {
                 var child = _a[_i];
                 child.update(time);
@@ -1351,9 +1437,9 @@ var TSE;
         SimObject.prototype.onAdded = function (scene) {
             this._scene = scene;
         };
-        SimObject.prototype.updateWorldMatrix = function (parentMatrix) {
-            if (parentMatrix !== undefined) {
-                this._worldMatrix = TSE.Martix4.multiply(parentMatrix, this._localMatrix);
+        SimObject.prototype.updateWorldMatrix = function (parentWorldMatrix) {
+            if (parentWorldMatrix !== undefined) {
+                this._worldMatrix = TSE.Martix4.multiply(parentWorldMatrix, this._localMatrix);
             }
             else {
                 this._worldMatrix.copyFrom(this._localMatrix);
@@ -1373,6 +1459,7 @@ var TSE;
     })(ZoneState = TSE.ZoneState || (TSE.ZoneState = {}));
     var Zone = (function () {
         function Zone(id, name, description) {
+            this._globalId = -1;
             this._state = ZoneState.UNINITALIZED;
             this._id = id;
             this._name = name;
@@ -1407,6 +1494,15 @@ var TSE;
             enumerable: false,
             configurable: true
         });
+        Zone.prototype.initialize = function (zoneData) {
+            if (zoneData.objects === undefined) {
+                throw new Error("Zone initialization error:objects not present.");
+            }
+            for (var object in zoneData.objects) {
+                var obj = zoneData.objects[object];
+                this.loadSimObject(obj, this._scene.root);
+            }
+        };
         Zone.prototype.load = function () {
             this._state = ZoneState.LOADING;
             this.scene.load();
@@ -1415,18 +1511,38 @@ var TSE;
         Zone.prototype.unload = function () {
         };
         Zone.prototype.update = function (time) {
-            if (this._state === ZoneState.LOADING) {
+            if (this._state === ZoneState.UPDATEING) {
                 this._scene.update(time);
             }
         };
         Zone.prototype.render = function (shader) {
-            if (this._state === ZoneState.LOADING) {
+            if (this._state === ZoneState.UPDATEING) {
                 this._scene.render(shader);
             }
         };
         Zone.prototype.onActivated = function () {
         };
         Zone.prototype.onDeactivated = function () {
+        };
+        Zone.prototype.loadSimObject = function (dataSection, parent) {
+            var name;
+            if (dataSection.name !== undefined) {
+                name = dataSection.name;
+            }
+            this._globalId++;
+            var simObjet = new TSE.SimObject(this._globalId, name, this._scene);
+            if (dataSection.tranform !== undefined) {
+                simObjet.transform.setFromJson(dataSection.tranform);
+            }
+            if (dataSection.children !== undefined) {
+                for (var obj in dataSection.children) {
+                    var object = dataSection[obj];
+                    this.loadSimObject(object, simObjet);
+                }
+            }
+            if (parent !== undefined) {
+                parent.addChild(simObjet);
+            }
         };
         return Zone;
     }());
@@ -1440,13 +1556,24 @@ var TSE;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         TestZone.prototype.load = function () {
+            this._parentObject = new TSE.SimObject(0, "parentObject");
+            this._parentObject.transform.position.x = 300;
+            this._parentObject.transform.position.y = 300;
+            this._parentSprite = new TSE.SpriteComponent("test", "create");
+            this._parentObject.addComponent(this._parentSprite);
             this._testObject = new TSE.SimObject(0, "test");
             this._testSprite = new TSE.SpriteComponent("test", "create");
             this._testObject.addComponent(this._testSprite);
-            this._testObject.transform.position.x = 100;
-            this._testObject.transform.position.y = 100;
-            this.scene.addObject(this._testObject);
+            this._testObject.transform.position.x = 120;
+            this._testObject.transform.position.y = 120;
+            this._parentObject.addChild(this._testObject);
+            this.scene.addObject(this._parentObject);
             _super.prototype.load.call(this);
+        };
+        TestZone.prototype.update = function (time) {
+            this._parentObject.transform.rotation.z += 0.01;
+            this._testObject.transform.rotation.z += 0.01;
+            _super.prototype.update.call(this, time);
         };
         return TestZone;
     }(TSE.Zone));
@@ -1457,28 +1584,51 @@ var TSE;
     var ZoneManager = (function () {
         function ZoneManager() {
         }
-        ZoneManager.createZone = function (name, description) {
-            ZoneManager._globalZoneID++;
-            var zone = new TSE.Zone(ZoneManager._globalZoneID, name, description);
-            ZoneManager._zones[ZoneManager._globalZoneID] = zone;
-            return ZoneManager._globalZoneID;
+        ZoneManager.prototype.onMessage = function (message) {
+            if (message.code.indexOf(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED)) {
+                var asset = message.context;
+                ZoneManager.loadZone(asset);
+            }
         };
-        ZoneManager.createTestZone = function () {
-            ZoneManager._globalZoneID++;
-            var zone = new TSE.TestZone(ZoneManager._globalZoneID, "test", "a simple test zone");
-            ZoneManager._zones[ZoneManager._globalZoneID] = zone;
-            return ZoneManager._globalZoneID;
+        ZoneManager.initialize = function () {
+            ZoneManager._inst = new ZoneManager();
+            ZoneManager._registeredZones[0] = "assets/zones/testZone.json";
         };
         ZoneManager.changeZone = function (id) {
             if (ZoneManager._activeZone !== undefined) {
                 ZoneManager._activeZone.onDeactivated();
                 ZoneManager._activeZone.unload();
+                ZoneManager._activeZone = undefined;
             }
-            if (ZoneManager._zones[id] !== undefined) {
-                ZoneManager._activeZone = ZoneManager._zones[id];
-                ZoneManager._activeZone.onActivated();
-                ZoneManager._activeZone.load();
+            if (ZoneManager._registeredZones[id] !== undefined) {
+                if (TSE.AssetManager.isAssetLoaded(ZoneManager._registeredZones[id])) {
+                    var asset = TSE.AssetManager.getAsset(ZoneManager._registeredZones[id]);
+                    this.loadZone(asset);
+                }
+                else {
+                    TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + ZoneManager._registeredZones[id], ZoneManager._inst);
+                    TSE.AssetManager.loadAsset(ZoneManager._registeredZones[id]);
+                }
             }
+            else {
+                throw new Error("Zone id:" + id.toString() + " does not exist.");
+            }
+        };
+        ZoneManager.loadZone = function (asset) {
+            var zoneData = asset.data;
+            var zoneId;
+            if (zoneData.id == undefined) {
+                throw new Error("zone id no present");
+            }
+            else {
+                zoneId = +zoneData.id;
+            }
+            var zoneName = zoneData.name;
+            var zoneDescription = zoneData.description;
+            ZoneManager._activeZone = new TSE.Zone(zoneId, zoneName, zoneDescription);
+            ZoneManager._activeZone.initialize(zoneData);
+            ZoneManager._activeZone.onActivated();
+            ZoneManager._activeZone.load();
         };
         ZoneManager.update = function (time) {
             if (ZoneManager._activeZone !== undefined) {
@@ -1491,7 +1641,7 @@ var TSE;
             }
         };
         ZoneManager._globalZoneID = -1;
-        ZoneManager._zones = {};
+        ZoneManager._registeredZones = {};
         return ZoneManager;
     }());
     TSE.ZoneManager = ZoneManager;

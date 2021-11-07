@@ -21,5 +21,18 @@ module TSE {
             // T * R * S
             return Martix4.multiply(Martix4.multiply(translation, rotation), scale);
         }
+
+        public setFromJson(json: any): void {
+            let { position, scale, rotation } = json;
+            if (position !== undefined) {
+                this.position.setFromJson(position);
+            }
+            if (scale !== undefined) {
+                this.scale.setFromJson(scale);
+            }
+            if (rotation !== undefined) {
+                this.rotation.setFromJson(rotation);
+            }
+        }
     }
 }

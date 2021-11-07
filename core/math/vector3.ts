@@ -54,5 +54,12 @@ module TSE {
             this._z = vector3.z;
         }
 
+        public setFromJson(json:any):void{
+            let {x,y,z} = json;
+            this._x = +x;
+            this._y = +x;
+            this._z = +x;
+        }
+
     }
 }

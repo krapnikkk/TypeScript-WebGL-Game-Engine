@@ -10,6 +10,7 @@ module TSE {
 
         public static initialize(): void {
             AssetManager._loaders.push(new ImageAssetLoader());
+            AssetManager._loaders.push(new JsonAssetLoader());
         }
 
         public static registerLoader(loader: IAssetLoader): void {
