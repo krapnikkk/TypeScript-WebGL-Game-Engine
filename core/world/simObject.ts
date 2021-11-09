@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class SimObject {
         private _id: number;
         private _children: SimObject[] = [];

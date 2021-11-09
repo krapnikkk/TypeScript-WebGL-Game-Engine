@@ -1,4 +1,4 @@
-module TSE{
+namespace TSE{
     export class MessageSubscriptionNode{
         public message:Message;
         public handler:IMessageHandler;

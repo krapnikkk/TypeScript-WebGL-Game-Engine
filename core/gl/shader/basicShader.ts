@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class BasicShader extends Shader {
         public constructor() {
             super("basic");

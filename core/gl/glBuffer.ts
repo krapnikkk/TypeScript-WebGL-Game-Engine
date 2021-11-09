@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class AttributeInfo {
         public location: number;
         public size: number;

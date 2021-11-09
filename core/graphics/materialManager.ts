@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     class MaterialReferenceNode {
         public material: Material;
         public referenceCount: number = 1;

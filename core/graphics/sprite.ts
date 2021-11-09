@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Sprite {
         private _name: string;
         private _width: number;

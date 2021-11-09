@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class ZoneManager implements IMessageHandler {
 
         private static _globalZoneID: number = -1;

@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export const MESSAGE_ASSET_LOADED_ASSET_LOADED = "MESSAGE_ASSET_LOADED_ASSET_LOADED";
     export class AssetManager {
         private static _loaders: IAssetLoader[] = [];

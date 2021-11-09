@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class ImageAsset implements IAsset {
         public readonly name: string;
         public readonly data: HTMLImageElement;

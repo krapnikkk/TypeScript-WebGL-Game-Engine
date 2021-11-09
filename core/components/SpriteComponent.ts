@@ -1,5 +1,5 @@
 /// <reference path = "ComponentManager.ts" />
-module TSE{
+namespace TSE{
     export class SpriteComponentData implements IComponentData{
         public name:string;
         public materialName:string;

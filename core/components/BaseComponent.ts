@@ -1,4 +1,4 @@
-module TSE{
+namespace TSE{
     export abstract class BaseComponent implements IComponent {
         protected _owner:SimObject;
         public name:string;

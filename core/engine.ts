@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Engine {
         private _canvas: HTMLCanvasElement;
         private _basicShader: Shader;

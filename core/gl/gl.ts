@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export let gl: WebGLRenderingContext;
     /**
      * 创建一个WebGL渲染环境

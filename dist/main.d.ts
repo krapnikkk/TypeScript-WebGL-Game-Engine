@@ -1,5 +1,5 @@
 declare let engine: TSE.Engine;
-declare module TSE {
+declare namespace TSE {
     class Engine {
         private _canvas;
         private _basicShader;
@@ -11,19 +11,19 @@ declare module TSE {
         private loop;
     }
 }
-declare module TSE {
+declare namespace TSE {
     interface IAssetLoader {
         readonly supportedExtensions: string[];
         loadAsset(assetName: string): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     interface IAsset {
         readonly name: string;
         readonly data: any;
     }
 }
-declare module TSE {
+declare namespace TSE {
     const MESSAGE_ASSET_LOADED_ASSET_LOADED = "MESSAGE_ASSET_LOADED_ASSET_LOADED";
     class AssetManager {
         private static _loaders;
@@ -37,7 +37,7 @@ declare module TSE {
         static getAsset(assetName: string): IAsset;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class ImageAsset implements IAsset {
         readonly name: string;
         readonly data: HTMLImageElement;
@@ -51,7 +51,7 @@ declare module TSE {
         private onImageLoaded;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class JsonAsset implements IAsset {
         readonly name: string;
         readonly data: any;
@@ -63,7 +63,7 @@ declare module TSE {
         private onJsonLoaded;
     }
 }
-declare module TSE {
+declare namespace TSE {
     abstract class BaseComponent implements IComponent {
         protected _owner: SimObject;
         name: string;
@@ -105,7 +105,7 @@ declare namespace TSE {
         setFromJson(json: any): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class SpriteComponentData implements IComponentData {
         name: string;
         materialName: string;
@@ -122,13 +122,13 @@ declare module TSE {
         render(shader: Shader): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     let gl: WebGLRenderingContext;
     class GLUtilities {
         static initialize(elementId?: string): HTMLCanvasElement;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class AttributeInfo {
         location: number;
         size: number;
@@ -155,7 +155,7 @@ declare module TSE {
         destroy(): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     abstract class Shader {
         private _name;
         private _program;
@@ -173,14 +173,14 @@ declare module TSE {
         getUniformLocation(name: string): WebGLUniformLocation;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class BasicShader extends Shader {
         constructor();
         private getVertexSource;
         private getFragmentSource;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Color {
         private _r;
         private _g;
@@ -209,7 +209,7 @@ declare module TSE {
         static blue(): Color;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Material {
         private _name;
         private _diffuseTextureName;
@@ -224,7 +224,7 @@ declare module TSE {
         destory(): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class MaterialManager {
         private static _materials;
         private constructor();
@@ -233,7 +233,7 @@ declare module TSE {
         static releaseMaterial(materialName: string): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Sprite {
         private _name;
         private _width;
@@ -250,7 +250,7 @@ declare module TSE {
         destory(): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Texture implements IMessageHandler {
         private _name;
         private _handle;
@@ -272,7 +272,7 @@ declare module TSE {
         destory(): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class TextureManager {
         private static _textures;
         private constructor();
@@ -280,7 +280,7 @@ declare module TSE {
         static releaseTexture(textureName: string): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Martix4 {
         private _data;
         private constructor();
@@ -298,7 +298,7 @@ declare module TSE {
         copyFrom(m: Martix4): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Transform {
         position: Vector3;
         rotation: Vector3;
@@ -308,7 +308,7 @@ declare module TSE {
         setFromJson(json: any): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Vector2 {
         private _x;
         private _y;
@@ -321,7 +321,7 @@ declare module TSE {
         toFloat32Array(): Float32Array;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Vector3 {
         private _x;
         private _y;
@@ -341,12 +341,12 @@ declare module TSE {
         setFromJson(json: any): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     interface IMessageHandler {
         onMessage(message: Message): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     enum MessagePriority {
         NORMAL = 0,
         HIGH = 1
@@ -363,7 +363,7 @@ declare module TSE {
         static unsubscribe(code: string, handler: IMessageHandler): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class MessageBus {
         private static _subscriptions;
         private static _normalQueueMessagePerUpdate;
@@ -375,14 +375,14 @@ declare module TSE {
         static update(time: number): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class MessageSubscriptionNode {
         message: Message;
         handler: IMessageHandler;
         constructor(message: Message, handler: IMessageHandler);
     }
 }
-declare module TSE {
+declare namespace TSE {
     class Scene {
         private _root;
         constructor();
@@ -395,7 +395,7 @@ declare module TSE {
         render(shader: Shader): void;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class SimObject {
         private _id;
         private _children;
@@ -423,7 +423,7 @@ declare module TSE {
         private updateWorldMatrix;
     }
 }
-declare module TSE {
+declare namespace TSE {
     enum ZoneState {
         UNINITALIZED = 0,
         LOADING = 1,
@@ -451,7 +451,7 @@ declare module TSE {
         private loadSimObject;
     }
 }
-declare module TSE {
+declare namespace TSE {
     class ZoneManager implements IMessageHandler {
         private static _globalZoneID;
         private static _registeredZones;

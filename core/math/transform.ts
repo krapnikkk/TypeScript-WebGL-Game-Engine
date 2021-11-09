@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Transform {
         public position: Vector3 = Vector3.zero;
         public rotation: Vector3 = Vector3.zero;

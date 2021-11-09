@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Scene {
         private _root: SimObject;
         // private _

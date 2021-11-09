@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class JsonAsset implements IAsset {
         public readonly name: string;
         public readonly data: any;

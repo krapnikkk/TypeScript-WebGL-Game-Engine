@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Material {
         private _name: string;
         private _diffuseTextureName: string;

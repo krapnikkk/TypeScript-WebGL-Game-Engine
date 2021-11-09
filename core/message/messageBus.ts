@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class MessageBus {
         private static _subscriptions: { [code: string]: IMessageHandler[] } = {};
         private static _normalQueueMessagePerUpdate: number = 10;

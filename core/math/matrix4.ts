@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Martix4 {
         private _data: number[] = [];
 

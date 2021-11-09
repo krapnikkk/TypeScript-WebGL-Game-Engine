@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export abstract class Shader {
         private _name: string;
         private _program: WebGLProgram;

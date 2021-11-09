@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     export class Color {
         private _r: number;
         private _g: number;

@@ -1,4 +1,4 @@
-module TSE {
+namespace TSE {
     class TextureReference {
         public texture: Texture;
         public referenceCount: number = 1;
