@@ -1,8 +1,38 @@
+/// <reference path = "ComponentManager.ts" />
 module TSE{
+    export class SpriteComponentData implements IComponentData{
+        public name:string;
+        public materialName:string;
+
+        public setFromJson(json:any):void{
+            if(json.name){
+                this.name = json.name;
+            }
+
+            if(json.materialName){
+                this.materialName = json.materialName;
+            }
+        }
+    }
+
+    export class SpriteComponentBuilder implements IComponentBuilder{
+        public  get type():string{
+            return "sprite";
+        }
+
+        public buildFromJson(json:any):IComponent{
+            let data = new SpriteComponentData();
+            data.setFromJson(json);
+            return new SpriteComponent(data);
+        }
+
+    }
+
     export class SpriteComponent extends BaseComponent{
         private _sprite:Sprite;
-        public constructor(name:string,materialName:string){
-            super(name);
+        public constructor(data:SpriteComponentData){
+            super(data);
+            let {name,materialName} = data;
             this._sprite = new Sprite(name,materialName);
         }
 
@@ -16,4 +46,6 @@ module TSE{
         }
 
     }
+
+    ComponentManager.registerBuilder(new SpriteComponentBuilder);
 }

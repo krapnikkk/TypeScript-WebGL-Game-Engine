@@ -10,6 +10,10 @@
       "../core/assets/imageAssetLoader.ts",
       "../core/assets/jsonAssetLoader.ts",
       "../core/components/BaseComponent.ts",
+      "../core/components/ComponentManager.ts",
+      "../core/components/IComponent.ts",
+      "../core/components/IComponentBuilder.ts",
+      "../core/components/IComponentData.ts",
       "../core/components/SpriteComponent.ts",
       "../core/gl/gl.ts",
       "../core/gl/glBuffer.ts",
@@ -32,7 +36,6 @@
       "../core/world/scene.ts",
       "../core/world/simObject.ts",
       "../core/world/zone.ts",
-      "../core/world/testZone.ts",
       "../core/world/zoneManager.ts"
     ],
     "js": {
@@ -45,7 +48,7 @@
         },
         {
           "pos": 763,
-          "end": 63054,
+          "end": 64247,
           "kind": "text"
         }
       ],
@@ -59,7 +62,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 12991,
+          "end": 13854,
           "kind": "text"
         }
       ]

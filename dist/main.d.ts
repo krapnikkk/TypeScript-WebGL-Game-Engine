@@ -64,10 +64,11 @@ declare module TSE {
     }
 }
 declare module TSE {
-    abstract class BaseComponent {
+    abstract class BaseComponent implements IComponent {
         protected _owner: SimObject;
         name: string;
-        constructor(name: string);
+        protected _data: IComponentData;
+        constructor(data: IComponentData);
         get owner(): SimObject;
         setOwner(owner: SimObject): void;
         load(): void;
@@ -75,10 +76,48 @@ declare module TSE {
         render(shader: Shader): void;
     }
 }
+declare namespace TSE {
+    class ComponentManager {
+        private static _registeredBuilders;
+        static registerBuilder(builder: IComponentBuilder): void;
+        static extractComponent(json: any): IComponent;
+    }
+}
+declare namespace TSE {
+    interface IComponent {
+        name: string;
+        readonly owner: SimObject;
+        setOwner(owner: SimObject): void;
+        load(): void;
+        update(time: number): void;
+        render(shader: Shader): void;
+    }
+}
+declare namespace TSE {
+    interface IComponentBuilder {
+        readonly type: string;
+        buildFromJson(json: any): IComponent;
+    }
+}
+declare namespace TSE {
+    interface IComponentData {
+        name: string;
+        setFromJson(json: any): void;
+    }
+}
 declare module TSE {
+    class SpriteComponentData implements IComponentData {
+        name: string;
+        materialName: string;
+        setFromJson(json: any): void;
+    }
+    class SpriteComponentBuilder implements IComponentBuilder {
+        get type(): string;
+        buildFromJson(json: any): IComponent;
+    }
     class SpriteComponent extends BaseComponent {
         private _sprite;
-        constructor(name: string, materialName: string);
+        constructor(data: SpriteComponentData);
         load(): void;
         render(shader: Shader): void;
     }
@@ -376,7 +415,7 @@ declare module TSE {
         addChild(child: SimObject): void;
         removeChild(child: SimObject): void;
         getObjectByName(name: string): SimObject;
-        addComponent(component: BaseComponent): void;
+        addComponent(component: IComponent): void;
         load(): void;
         update(time: number): void;
         render(shader: Shader): void;
@@ -410,16 +449,6 @@ declare module TSE {
         onActivated(): void;
         onDeactivated(): void;
         private loadSimObject;
-    }
-}
-declare module TSE {
-    class TestZone extends Zone {
-        private _parentObject;
-        private _parentSprite;
-        private _testSprite;
-        private _testObject;
-        load(): void;
-        update(time: number): void;
     }
 }
 declare module TSE {

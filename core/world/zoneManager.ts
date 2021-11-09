@@ -11,7 +11,7 @@ module TSE {
 
         }
         onMessage(message: Message): void {
-            if(message.code.indexOf(MESSAGE_ASSET_LOADED_ASSET_LOADED)){
+            if (message.code.indexOf(MESSAGE_ASSET_LOADED_ASSET_LOADED) != -1) {
                 let asset = message.context as JsonAsset;
                 ZoneManager.loadZone(asset);
             }
@@ -50,7 +50,7 @@ module TSE {
                     let asset = AssetManager.getAsset(ZoneManager._registeredZones[id]);
                     this.loadZone(asset);
                 } else {
-                    Message.subscribe(MESSAGE_ASSET_LOADED_ASSET_LOADED + ZoneManager._registeredZones[id], ZoneManager._inst);
+                    Message.subscribe(MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" +ZoneManager._registeredZones[id], ZoneManager._inst);
                     AssetManager.loadAsset(ZoneManager._registeredZones[id]);
                 }
             } else {
@@ -60,15 +60,15 @@ module TSE {
 
         public static loadZone(asset: JsonAsset): void {
             let zoneData = asset.data;
-            let zoneId:number;
-            if(zoneData.id == undefined){
+            let zoneId: number;
+            if (zoneData.id == undefined) {
                 throw new Error("zone id no present");
-            }else{
+            } else {
                 zoneId = +zoneData.id;
             }
-            let zoneName =  zoneData.name;
+            let zoneName = zoneData.name;
             let zoneDescription = zoneData.description;
-            ZoneManager._activeZone = new Zone(zoneId,zoneName,zoneDescription);
+            ZoneManager._activeZone = new Zone(zoneId, zoneName, zoneDescription);
             ZoneManager._activeZone.initialize(zoneData);
             ZoneManager._activeZone.onActivated();
             ZoneManager._activeZone.load();

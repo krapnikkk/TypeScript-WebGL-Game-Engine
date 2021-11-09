@@ -1,0 +1,41 @@
+{
+    "name": "TestZone",
+    "description": "",
+    "id": 0,
+    "objects": [
+        {
+            "name": "parentObject",
+            "transform": {
+                "position": {
+                    "x": 300,
+                    "y": 300
+                }
+            },
+            "children": [
+                {
+                    "name": "testObject",
+                    "transform": {
+                        "position": {
+                            "x": 100,
+                            "y": 120
+                        }
+                    },
+                    "components": [
+                        {
+                            "name": "inner",
+                            "type": "sprite",
+                            "materialName": "create"
+                        }
+                    ]
+                }
+            ],
+            "components": [
+                {
+                    "name": "outer",
+                    "type": "sprite",
+                    "materialName": "create"
+                }
+            ]
+        }
+    ]
+}

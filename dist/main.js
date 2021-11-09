@@ -195,7 +195,9 @@ var TSE;
 var TSE;
 (function (TSE) {
     var BaseComponent = (function () {
-        function BaseComponent(name) {
+        function BaseComponent(data) {
+            this._data = data;
+            this.name = data.name;
         }
         ;
         Object.defineProperty(BaseComponent.prototype, "owner", {
@@ -222,10 +224,64 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var ComponentManager = (function () {
+        function ComponentManager() {
+        }
+        ComponentManager.registerBuilder = function (builder) {
+            ComponentManager._registeredBuilders[builder.type] = builder;
+        };
+        ComponentManager.extractComponent = function (json) {
+            if (json.type) {
+                if (ComponentManager._registeredBuilders[json.type] !== undefined) {
+                    return ComponentManager._registeredBuilders[json.type].buildFromJson(json);
+                }
+                throw new Error("ComponentManager error - type is missing or builder is not registered for this type.");
+            }
+        };
+        ComponentManager._registeredBuilders = {};
+        return ComponentManager;
+    }());
+    TSE.ComponentManager = ComponentManager;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var SpriteComponentData = (function () {
+        function SpriteComponentData() {
+        }
+        SpriteComponentData.prototype.setFromJson = function (json) {
+            if (json.name) {
+                this.name = json.name;
+            }
+            if (json.materialName) {
+                this.materialName = json.materialName;
+            }
+        };
+        return SpriteComponentData;
+    }());
+    TSE.SpriteComponentData = SpriteComponentData;
+    var SpriteComponentBuilder = (function () {
+        function SpriteComponentBuilder() {
+        }
+        Object.defineProperty(SpriteComponentBuilder.prototype, "type", {
+            get: function () {
+                return "sprite";
+            },
+            enumerable: false,
+            configurable: true
+        });
+        SpriteComponentBuilder.prototype.buildFromJson = function (json) {
+            var data = new SpriteComponentData();
+            data.setFromJson(json);
+            return new SpriteComponent(data);
+        };
+        return SpriteComponentBuilder;
+    }());
+    TSE.SpriteComponentBuilder = SpriteComponentBuilder;
     var SpriteComponent = (function (_super) {
         __extends(SpriteComponent, _super);
-        function SpriteComponent(name, materialName) {
-            var _this = _super.call(this, name) || this;
+        function SpriteComponent(data) {
+            var _this = _super.call(this, data) || this;
+            var name = data.name, materialName = data.materialName;
             _this._sprite = new TSE.Sprite(name, materialName);
             return _this;
         }
@@ -239,6 +295,7 @@ var TSE;
         return SpriteComponent;
     }(TSE.BaseComponent));
     TSE.SpriteComponent = SpriteComponent;
+    TSE.ComponentManager.registerBuilder(new SpriteComponentBuilder);
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
@@ -1182,9 +1239,9 @@ var TSE;
         };
         Vector3.prototype.setFromJson = function (json) {
             var x = json.x, y = json.y, z = json.z;
-            this._x = +x;
-            this._y = +x;
-            this._z = +x;
+            this._x = +x || 0;
+            this._y = +y || 0;
+            this._z = +z || 0;
         };
         return Vector3;
     }());
@@ -1528,15 +1585,23 @@ var TSE;
             var name;
             if (dataSection.name !== undefined) {
                 name = dataSection.name;
+                console.log(name);
             }
             this._globalId++;
             var simObjet = new TSE.SimObject(this._globalId, name, this._scene);
-            if (dataSection.tranform !== undefined) {
-                simObjet.transform.setFromJson(dataSection.tranform);
+            if (dataSection.transform !== undefined) {
+                simObjet.transform.setFromJson(dataSection.transform);
+            }
+            if (dataSection.components !== undefined) {
+                for (var _i = 0, _a = dataSection.components; _i < _a.length; _i++) {
+                    var element = _a[_i];
+                    var component = TSE.ComponentManager.extractComponent(element);
+                    simObjet.addComponent(component);
+                }
             }
             if (dataSection.children !== undefined) {
-                for (var obj in dataSection.children) {
-                    var object = dataSection[obj];
+                for (var _b = 0, _c = dataSection.children; _b < _c.length; _b++) {
+                    var object = _c[_b];
                     this.loadSimObject(object, simObjet);
                 }
             }
@@ -1550,42 +1615,11 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
-    var TestZone = (function (_super) {
-        __extends(TestZone, _super);
-        function TestZone() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        TestZone.prototype.load = function () {
-            this._parentObject = new TSE.SimObject(0, "parentObject");
-            this._parentObject.transform.position.x = 300;
-            this._parentObject.transform.position.y = 300;
-            this._parentSprite = new TSE.SpriteComponent("test", "create");
-            this._parentObject.addComponent(this._parentSprite);
-            this._testObject = new TSE.SimObject(0, "test");
-            this._testSprite = new TSE.SpriteComponent("test", "create");
-            this._testObject.addComponent(this._testSprite);
-            this._testObject.transform.position.x = 120;
-            this._testObject.transform.position.y = 120;
-            this._parentObject.addChild(this._testObject);
-            this.scene.addObject(this._parentObject);
-            _super.prototype.load.call(this);
-        };
-        TestZone.prototype.update = function (time) {
-            this._parentObject.transform.rotation.z += 0.01;
-            this._testObject.transform.rotation.z += 0.01;
-            _super.prototype.update.call(this, time);
-        };
-        return TestZone;
-    }(TSE.Zone));
-    TSE.TestZone = TestZone;
-})(TSE || (TSE = {}));
-var TSE;
-(function (TSE) {
     var ZoneManager = (function () {
         function ZoneManager() {
         }
         ZoneManager.prototype.onMessage = function (message) {
-            if (message.code.indexOf(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED)) {
+            if (message.code.indexOf(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED) != -1) {
                 var asset = message.context;
                 ZoneManager.loadZone(asset);
             }
@@ -1606,7 +1640,7 @@ var TSE;
                     this.loadZone(asset);
                 }
                 else {
-                    TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + ZoneManager._registeredZones[id], ZoneManager._inst);
+                    TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + ZoneManager._registeredZones[id], ZoneManager._inst);
                     TSE.AssetManager.loadAsset(ZoneManager._registeredZones[id]);
                 }
             }

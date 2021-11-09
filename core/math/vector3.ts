@@ -56,9 +56,9 @@ module TSE {
 
         public setFromJson(json:any):void{
             let {x,y,z} = json;
-            this._x = +x;
-            this._y = +x;
-            this._z = +x;
+            this._x = +x||0;
+            this._y = +y||0;
+            this._z = +z||0;
         }
 
     }

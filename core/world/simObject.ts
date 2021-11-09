@@ -5,7 +5,7 @@ module TSE {
         private _parent: SimObject;
         private _isLoaded: boolean = false;
         private _scene: Scene;
-        private _components: BaseComponent[] = [];
+        private _components: IComponent[] = [];
 
         private _localMatrix: Martix4 = Martix4.identity();
         private _worldMatrix: Martix4 = Martix4.identity();
@@ -61,7 +61,7 @@ module TSE {
             return null;
         }
 
-        public addComponent(component:BaseComponent):void{
+        public addComponent(component:IComponent):void{
             this._components.push(component);
             component.setOwner(this);
         }

@@ -81,15 +81,21 @@ module TSE {
             let name: string;
             if (dataSection.name !== undefined) {
                 name = dataSection.name;
+                console.log(name);
             }
             this._globalId++;
             let simObjet = new SimObject(this._globalId, name, this._scene);
-            if (dataSection.tranform !== undefined) {
-                simObjet.transform.setFromJson(dataSection.tranform);
+            if (dataSection.transform !== undefined) {
+                simObjet.transform.setFromJson(dataSection.transform);
+            }
+            if(dataSection.components !== undefined){
+                for(let element of dataSection.components){
+                    let component = ComponentManager.extractComponent(element);
+                    simObjet.addComponent(component);
+                }
             }
             if (dataSection.children !== undefined) {
-                for (let obj in dataSection.children) {
-                    let object = dataSection[obj];
+                for (let object of dataSection.children) {
                     this.loadSimObject(object, simObjet);
                 }
             }
