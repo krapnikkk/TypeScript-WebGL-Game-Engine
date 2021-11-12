@@ -40,25 +40,57 @@ namespace TSE {
             return new Float32Array(this.toArray());
         }
 
-        public static get zero():Vector3{
+        public static get zero(): Vector3 {
             return new Vector3();
         }
 
-        public static get one():Vector3{
-            return new Vector3(1,1,1);
+        public static get one(): Vector3 {
+            return new Vector3(1, 1, 1);
         }
 
-        public copyFrom(vector3:Vector3):void{
+        public copyFrom(vector3: Vector3): void {
             this._x = vector3.x;
             this._y = vector3.y;
             this._z = vector3.z;
         }
 
-        public setFromJson(json:any):void{
-            let {x,y,z} = json;
-            this._x = +x||0;
-            this._y = +y||0;
-            this._z = +z||0;
+        public setFromJson(json: any): void {
+            let { x, y, z } = json;
+            this._x = +x || 0;
+            this._y = +y || 0;
+            this._z = +z || 0;
+        }
+
+        public add(v: Vector3): Vector3 {
+            let { x, y, z } = v;
+            this.x += x;
+            this.y += y;
+            this.z += z;
+            return this;
+        }
+
+        public subtract(v: Vector3): Vector3 {
+            this._x -= v._x;
+            this._y -= v._y;
+            this._z -= v._z;
+
+            return this;
+        }
+
+        public multiply(v: Vector3): Vector3 {
+            this._x *= v._x;
+            this._y *= v._y;
+            this._z *= v._z;
+
+            return this;
+        }
+
+        public divide(v: Vector3): Vector3 {
+            this._x /= v._x;
+            this._y /= v._y;
+            this._z /= v._z;
+
+            return this;
         }
 
     }

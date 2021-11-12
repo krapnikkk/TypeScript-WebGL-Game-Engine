@@ -6,6 +6,7 @@ namespace TSE {
         private _isLoaded: boolean = false;
         private _scene: Scene;
         private _components: IComponent[] = [];
+        private _behaviors:IBehavior[] = [];
 
         private _localMatrix: Martix4 = Martix4.identity();
         private _worldMatrix: Martix4 = Martix4.identity();
@@ -66,6 +67,11 @@ namespace TSE {
             component.setOwner(this);
         }
 
+        public addBehavior(behaviors:IBehavior):void{
+            this._behaviors.push(behaviors);
+            behaviors.setOwner(this);
+        }
+
         public load(): void {
             this._isLoaded = true;
             for (let child of this._children) {
@@ -84,6 +90,9 @@ namespace TSE {
             }
             for (let component of this._components) {
                 component.update(time);
+            }
+            for (let behavior of this._behaviors) {
+                behavior.update(time);
             }
         }
 

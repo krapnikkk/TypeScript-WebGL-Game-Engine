@@ -94,6 +94,12 @@ namespace TSE {
                     simObjet.addComponent(component);
                 }
             }
+            if(dataSection.behaviors !== undefined){
+                for(let element of dataSection.behaviors){
+                    let behavior = BehaviorManager.extractBehavior(element);
+                    simObjet.addBehavior(behavior);
+                }
+            }
             if (dataSection.children !== undefined) {
                 for (let object of dataSection.children) {
                     this.loadSimObject(object, simObjet);

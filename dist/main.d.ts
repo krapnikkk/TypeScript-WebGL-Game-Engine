@@ -64,6 +64,60 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
+    class BehaviorManager {
+        private static _registeredBuilders;
+        static registerBuilder(builder: IBehaviorBuilder): void;
+        static extractBehavior(json: any): IBehavior;
+    }
+}
+declare namespace TSE {
+    interface IBehavior {
+        name: string;
+        setOwner(owner: SimObject): void;
+        update(time: number): void;
+        apply(userData: any): void;
+    }
+}
+declare namespace TSE {
+    interface IBehaviorBuilder {
+        readonly type: string;
+        buildFromJson(json: any): IBehavior;
+    }
+}
+declare namespace TSE {
+    interface IBehaviorData {
+        name: string;
+        setFromJson(json: any): void;
+    }
+}
+declare namespace TSE {
+    abstract class BaseBehavior implements IBehavior {
+        name: string;
+        protected _data: IBehaviorData;
+        protected _owner: SimObject;
+        constructor(data: IBehaviorData);
+        setOwner(owner: SimObject): void;
+        update(time: number): void;
+        apply(userData: any): void;
+    }
+}
+declare namespace TSE {
+    class RotationBehaviorData implements IBehaviorData {
+        name: string;
+        rotation: Vector3;
+        setFromJson(json: any): void;
+    }
+    class RotationBehaviorBuilder implements IBehaviorBuilder {
+        get type(): string;
+        buildFromJson(json: any): IBehavior;
+    }
+    class RotationBehavior extends BaseBehavior {
+        private _rotation;
+        constructor(data: RotationBehaviorData);
+        update(time: number): void;
+    }
+}
+declare namespace TSE {
     abstract class BaseComponent implements IComponent {
         protected _owner: SimObject;
         name: string;
@@ -339,6 +393,10 @@ declare namespace TSE {
         static get one(): Vector3;
         copyFrom(vector3: Vector3): void;
         setFromJson(json: any): void;
+        add(v: Vector3): Vector3;
+        subtract(v: Vector3): Vector3;
+        multiply(v: Vector3): Vector3;
+        divide(v: Vector3): Vector3;
     }
 }
 declare namespace TSE {
@@ -403,6 +461,7 @@ declare namespace TSE {
         private _isLoaded;
         private _scene;
         private _components;
+        private _behaviors;
         private _localMatrix;
         private _worldMatrix;
         name: string;
@@ -416,6 +475,7 @@ declare namespace TSE {
         removeChild(child: SimObject): void;
         getObjectByName(name: string): SimObject;
         addComponent(component: IComponent): void;
+        addBehavior(behaviors: IBehavior): void;
         load(): void;
         update(time: number): void;
         render(shader: Shader): void;
