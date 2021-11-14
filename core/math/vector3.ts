@@ -33,7 +33,7 @@ namespace TSE {
         }
 
         public toArray(): number[] {
-            return [this._x, this.y, this.z];
+            return [this._x, this._y, this._z];
         }
 
         public toFloat32Array(): Float32Array {

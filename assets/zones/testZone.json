@@ -4,11 +4,39 @@
     "id": 0,
     "objects": [
         {
+            "name":"duck",
+            "transform":{
+                "position":{
+                    "x":100,
+                    "y":100
+                },
+                "scale":{
+                    "x":3,
+                    "y":3
+                }
+            },
+            "components":[
+                {
+                    "name":"duck",
+                    "type":"animatedSprite",
+                    "materialName":"duck",
+                    "frameWidth": 17,
+                    "frameHeight": 12,
+                    "frameCount": 3,
+                    "frameSequence": [0,1,2,1]
+                }
+            ]
+        },
+        {
             "name": "parentObject",
             "transform": {
                 "position": {
                     "x": 300,
                     "y": 300
+                },
+                "scale":{
+                    "x":1,
+                    "y":1
                 }
             },
             "children": [
@@ -24,7 +52,7 @@
                         {
                             "name": "inner",
                             "type": "sprite",
-                            "materialName": "create"
+                            "materialName": "sky"
                         }
                     ]
                 }
@@ -33,7 +61,7 @@
                 {
                     "name": "outer",
                     "type": "sprite",
-                    "materialName": "create"
+                    "materialName": "sky"
                 }
             ],
             "behaviors":[

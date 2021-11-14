@@ -4,11 +4,13 @@ declare namespace TSE {
         private _canvas;
         private _basicShader;
         private _projection;
-        private _sprite;
+        private _previousTime;
         constructor();
         start(): void;
         resize(): void;
         private loop;
+        private update;
+        private render;
     }
 }
 declare namespace TSE {
@@ -118,6 +120,13 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
+    class ComponentManager {
+        private static _registeredBuilders;
+        static registerBuilder(builder: IComponentBuilder): void;
+        static extractComponent(json: any): IComponent;
+    }
+}
+declare namespace TSE {
     abstract class BaseComponent implements IComponent {
         protected _owner: SimObject;
         name: string;
@@ -131,10 +140,40 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
-    class ComponentManager {
-        private static _registeredBuilders;
-        static registerBuilder(builder: IComponentBuilder): void;
-        static extractComponent(json: any): IComponent;
+    class SpriteComponentData implements IComponentData {
+        name: string;
+        materialName: string;
+        setFromJson(json: any): void;
+    }
+    class SpriteComponentBuilder implements IComponentBuilder {
+        get type(): string;
+        buildFromJson(json: any): IComponent;
+    }
+    class SpriteComponent extends BaseComponent {
+        private _sprite;
+        constructor(data: SpriteComponentData);
+        load(): void;
+        render(shader: Shader): void;
+    }
+}
+declare namespace TSE {
+    class AnimatedSpriteComponentData extends SpriteComponentData implements IComponentData {
+        frameWidth: number;
+        frameHeight: number;
+        frameCount: number;
+        frameSequence: number[];
+        setFromJson(json: any): void;
+    }
+    class AnimatedSpriteComponentBuilder implements IComponentBuilder {
+        get type(): string;
+        buildFromJson(json: any): IComponent;
+    }
+    class AnimatedSpriteComponent extends BaseComponent {
+        private _sprite;
+        constructor(data: AnimatedSpriteComponentData);
+        update(time: number): void;
+        load(): void;
+        render(shader: Shader): void;
     }
 }
 declare namespace TSE {
@@ -160,23 +199,6 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
-    class SpriteComponentData implements IComponentData {
-        name: string;
-        materialName: string;
-        setFromJson(json: any): void;
-    }
-    class SpriteComponentBuilder implements IComponentBuilder {
-        get type(): string;
-        buildFromJson(json: any): IComponent;
-    }
-    class SpriteComponent extends BaseComponent {
-        private _sprite;
-        constructor(data: SpriteComponentData);
-        load(): void;
-        render(shader: Shader): void;
-    }
-}
-declare namespace TSE {
     let gl: WebGLRenderingContext;
     class GLUtilities {
         static initialize(elementId?: string): HTMLCanvasElement;
@@ -199,11 +221,13 @@ declare namespace TSE {
         private _typeSize;
         private _data;
         private _attributes;
-        constructor(elementSize: number, dataType?: GLenum, targetBufferType?: GLenum, mode?: GLenum);
+        constructor(dataType?: GLenum, targetBufferType?: GLenum, mode?: GLenum);
         bind(normalized?: boolean): void;
         unbind(): void;
         addAttributeLocation(info: AttributeInfo): void;
+        setData(data: number[]): void;
         pushBackData(data: number[]): void;
+        clearData(): void;
         upload(): void;
         draw(): void;
         destroy(): void;
@@ -232,6 +256,44 @@ declare namespace TSE {
         constructor();
         private getVertexSource;
         private getFragmentSource;
+    }
+}
+declare namespace TSE {
+    class Sprite {
+        protected _name: string;
+        protected _width: number;
+        protected _height: number;
+        protected _buffer: GLBuffer;
+        protected _materialName: string;
+        protected _material: Material;
+        protected _vertices: Vertex[];
+        constructor(name: string, materialName: string, width?: number, height?: number);
+        get name(): string;
+        load(): void;
+        update(time: number): void;
+        draw(shader: Shader, model: Martix4): void;
+        destory(): void;
+    }
+}
+declare namespace TSE {
+    class AnimatedSprite extends Sprite implements IMessageHandler {
+        private _frameWidth;
+        private _frameHeight;
+        private _frameCount;
+        private _frameSequence;
+        private _currentFrame;
+        private _frameUVS;
+        private _frameTime;
+        private _currentTime;
+        private _assetLoaded;
+        private _assetWidth;
+        private _assetHeight;
+        constructor(name: string, materialName: string, width?: number, height?: number, frameWidth?: number, frameHeight?: number, frameCount?: number, frameSequence?: number[]);
+        onMessage(message: Message): void;
+        load(): void;
+        calculateUVs(): void;
+        update(time: number): void;
+        destory(): void;
     }
 }
 declare namespace TSE {
@@ -288,23 +350,6 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
-    class Sprite {
-        private _name;
-        private _width;
-        private _height;
-        private _buffer;
-        private _materialName;
-        private _material;
-        position: Vector3;
-        constructor(name: string, materialName: string, width?: number, height?: number);
-        get name(): string;
-        load(): void;
-        update(time: number): void;
-        draw(shader: Shader, model: Martix4): void;
-        destory(): void;
-    }
-}
-declare namespace TSE {
     class Texture implements IMessageHandler {
         private _name;
         private _handle;
@@ -332,6 +377,15 @@ declare namespace TSE {
         private constructor();
         static getTexture(textureName: string): Texture;
         static releaseTexture(textureName: string): void;
+    }
+}
+declare namespace TSE {
+    class Vertex {
+        position: Vector3;
+        texCoords: Vector2;
+        constructor(x?: number, y?: number, z?: number, tu?: number, tv?: number);
+        toArray(): number[];
+        toFloat32Array(): Float32Array;
     }
 }
 declare namespace TSE {
@@ -371,6 +425,9 @@ declare namespace TSE {
         set x(value: number);
         get y(): number;
         set y(value: number);
+        static get zero(): Vector2;
+        static get one(): Vector2;
+        copyFrom(vector2: Vector2): void;
         toArray(): number[];
         toFloat32Array(): Float32Array;
     }

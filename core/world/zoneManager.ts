@@ -19,7 +19,7 @@ namespace TSE {
 
         public static initialize(): void {
             ZoneManager._inst = new ZoneManager();
-            ZoneManager._registeredZones[0] = "assets/zones/testZone.json";
+            ZoneManager._registeredZones[0] = "./assets/zones/testZone.json";
 
         }
 
@@ -50,7 +50,7 @@ namespace TSE {
                     let asset = AssetManager.getAsset(ZoneManager._registeredZones[id]);
                     this.loadZone(asset);
                 } else {
-                    Message.subscribe(MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" +ZoneManager._registeredZones[id], ZoneManager._inst);
+                    Message.subscribe(MESSAGE_ASSET_LOADED_ASSET_LOADED  +ZoneManager._registeredZones[id], ZoneManager._inst);
                     AssetManager.loadAsset(ZoneManager._registeredZones[id]);
                 }
             } else {

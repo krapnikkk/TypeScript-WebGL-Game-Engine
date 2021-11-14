@@ -23,8 +23,21 @@ namespace TSE {
             this._y = value;
         }
 
+        public static get zero(): Vector2 {
+            return new Vector2();
+        }
+
+        public static get one(): Vector2 {
+            return new Vector2(1, 1);
+        }
+
+        public copyFrom(vector2: Vector2): void {
+            this._x = vector2.x;
+            this._y = vector2.y;
+        }
+
         public toArray(): number[] {
-            return [this._x, this.y];
+            return [this._x, this._y];
         }
 
         public toFloat32Array(): Float32Array {

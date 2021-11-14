@@ -15,7 +15,6 @@ namespace TSE {
             this._height = height;
 
             this._handle = gl.createTexture();
-            Message.subscribe(MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + this._name, this);
             this.bind();
 
             gl.texImage2D(gl.TEXTURE_2D, LEVEL, gl.RGBA, 1, 1, BORDER, gl.RGBA, gl.UNSIGNED_BYTE, TEMP_IMAGE_DATA);
@@ -23,11 +22,13 @@ namespace TSE {
             let asset = AssetManager.getAsset(this.name) as ImageAsset;
             if (asset !== undefined) {
                 this.loadTextureFromAsset(asset);
+            }else{
+                Message.subscribe(MESSAGE_ASSET_LOADED_ASSET_LOADED + this._name, this);
             }
         }
 
         onMessage(message: Message): void {
-            if (message.code === MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + this._name) {
+            if (message.code === MESSAGE_ASSET_LOADED_ASSET_LOADED  + this._name) {
                 this.loadTextureFromAsset(message.context as ImageAsset);
             }
         }
@@ -58,6 +59,7 @@ namespace TSE {
 
         public activateAndBind(textureUnit: number = 0): void {
             gl.activeTexture(gl.TEXTURE0 + textureUnit);
+            this.bind();
         }
 
         public loadTextureFromAsset(asset: ImageAsset): void {
@@ -72,8 +74,10 @@ namespace TSE {
             } else {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             }
+            // todo set texture filtering based on configuration.
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             this._isLoaded = true;
         }
 

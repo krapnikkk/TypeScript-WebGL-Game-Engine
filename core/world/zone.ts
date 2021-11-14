@@ -81,7 +81,6 @@ namespace TSE {
             let name: string;
             if (dataSection.name !== undefined) {
                 name = dataSection.name;
-                console.log(name);
             }
             this._globalId++;
             let simObjet = new SimObject(this._globalId, name, this._scene);

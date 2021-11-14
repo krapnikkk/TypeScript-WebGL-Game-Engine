@@ -3,7 +3,7 @@ namespace TSE {
         private _canvas: HTMLCanvasElement;
         private _basicShader: Shader;
         private _projection: Martix4;
-        private _sprite: Sprite;
+        private _previousTime: number = 0;
         public constructor() {
 
         }
@@ -13,13 +13,16 @@ namespace TSE {
             AssetManager.initialize();
             ZoneManager.initialize();
             gl.clearColor(0, 0, 0, 1);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+
             this._basicShader = new BasicShader();
             this._basicShader.use();
 
             // load  material
-            MaterialManager.registerMaterial(new Material("create", "./assets/texture/sky.jpeg", new Color(255, 128, 0, 255)))
+            MaterialManager.registerMaterial(new Material("sky", "./assets/texture/sky.jpeg", Color.white()))
+            MaterialManager.registerMaterial(new Material("duck", "./assets/texture/duck.png", Color.white()))
 
-            // let zoneID = ZoneManager.createTestZone();
             // todo id from config
             ZoneManager.changeZone(0);
 
@@ -41,8 +44,19 @@ namespace TSE {
         }
 
         private loop(): void {
-            MessageBus.update(0);
-            ZoneManager.update(0);
+            this.update();
+            this.render();
+        }
+
+        private update():void{
+            let delta = performance.now() - this._previousTime;
+            MessageBus.update(delta);
+            ZoneManager.update(delta);
+            this._previousTime = performance.now();
+        }
+
+        private render():void{
+            
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             ZoneManager.render(this._basicShader);
@@ -51,6 +65,7 @@ namespace TSE {
             gl.uniformMatrix4fv(projectionPosition, false, new Float32Array(this._projection.data));
 
             requestAnimationFrame(this.loop.bind(this));
+
         }
     }
 }

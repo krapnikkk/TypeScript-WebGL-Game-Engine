@@ -2,7 +2,7 @@ namespace TSE {
     export class AttributeInfo {
         public location: number;
         public size: number;
-        public offset: number;
+        public offset: number = 0;
 
     }
     export class GLBuffer {
@@ -20,13 +20,12 @@ namespace TSE {
         private _attributes: AttributeInfo[] = [];
         /**
          * 创建一个GL buffer
-         * @param elementSize  buffer每个元素的尺寸大小
          * @param dataType  buffer的数据类型。默认值：gl.FLOAT
-         * @param targetBufferType buffer的目标类型。可以是gl.ARRAY_BUFFER或者是gl.ELEMENT_ARRAY_BUFFER。默认值：gl.ARRAY_BUFFER
+         * @param targetBufferType buffer的目标类型。可以是gl.ARRAY_BUFFER或者是gl.ELEMENT_ARRAY_BUFFER。默认值：gl.ARRAY_BUFFER
          * @param mode  buffer绘制图形的方式。默认值：gl.TRIANGLES
          */
-        constructor(elementSize: number, dataType: GLenum = gl.FLOAT, targetBufferType: GLenum = gl.ARRAY_BUFFER, mode: GLenum = gl.TRIANGLES) {
-            this._elementSize = elementSize;
+        constructor(dataType: GLenum = gl.FLOAT, targetBufferType: GLenum = gl.ARRAY_BUFFER, mode: GLenum = gl.TRIANGLES) {
+            this._elementSize = 0;
             this._dataType = dataType;
             this._targetBufferType = targetBufferType;
             this._mode = mode;
@@ -49,7 +48,6 @@ namespace TSE {
                     throw new Error("Unrecognized data type:" + dataType.toString());
             }
 
-            this._stride = this._elementSize * this._typeSize;
             this._buffer = gl.createBuffer();
         }
 
@@ -70,20 +68,32 @@ namespace TSE {
             gl.bindBuffer(this._targetBufferType, null);
         }
 
-        public addAttributeLocation(info:AttributeInfo):void{
+        public addAttributeLocation(info: AttributeInfo): void {
             this._hasAttributeLocation = true;
+            info.offset = this._elementSize;
             this._attributes.push(info);
+            this._elementSize += info.size;
+            this._stride = this._elementSize * this._typeSize;
         }
 
-        public pushBackData(data:number[]):void{
-            for(let d of data){
+        public setData(data:number[]):void{
+            this.clearData();
+            this.pushBackData(data);
+        }
+
+        public pushBackData(data: number[]): void {
+            for (let d of data) {
                 this._data.push(d);
             }
         }
 
-        public upload():void{
-            gl.bindBuffer(this._targetBufferType,this._buffer);
-            let bufferData :ArrayBufferView;
+        public clearData(): void {
+            this._data.length = 0;
+        }
+
+        public upload(): void {
+            gl.bindBuffer(this._targetBufferType, this._buffer);
+            let bufferData: ArrayBufferView;
             switch (this._dataType) {
                 case gl.FLOAT:
                     bufferData = new Float32Array(this._data);
@@ -107,14 +117,14 @@ namespace TSE {
                     bufferData = new Uint8Array(this._data);
                     break;
             }
-            gl.bufferData(this._targetBufferType,bufferData,gl.STATIC_DRAW);
+            gl.bufferData(this._targetBufferType, bufferData, gl.STATIC_DRAW);
         }
 
-        public draw():void{
-            if(this._targetBufferType === gl.ARRAY_BUFFER){
-                gl.drawArrays(this._mode,0,this._data.length/this._elementSize);
-            }else if(this._targetBufferType === gl.ELEMENT_ARRAY_BUFFER){
-                gl.drawElements(this._mode,this._data.length,this._dataType,0);
+        public draw(): void {
+            if (this._targetBufferType === gl.ARRAY_BUFFER) {
+                gl.drawArrays(this._mode, 0, this._data.length / this._elementSize);
+            } else if (this._targetBufferType === gl.ELEMENT_ARRAY_BUFFER) {
+                gl.drawElements(this._mode, this._data.length, this._dataType, 0);
             }
         }
 
