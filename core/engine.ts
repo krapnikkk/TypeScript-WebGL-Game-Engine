@@ -1,5 +1,5 @@
 namespace TSE {
-    export class Engine {
+    export class Engine implements IMessageHandler{
         private _canvas: HTMLCanvasElement;
         private _basicShader: Shader;
         private _projection: Martix4;
@@ -7,11 +7,21 @@ namespace TSE {
         public constructor() {
 
         }
+        onMessage(message: Message): void {
+            if(message.code == "MOUSE_UP"){
+                let context = message.context as MouseContent;
+                console.log(context.position);
+            }
+        }
 
         public start(): void {
             this._canvas = GLUtilities.initialize();
             AssetManager.initialize();
+            InputManager.initialize();
             ZoneManager.initialize();
+
+            Message.subscribe("MOUSE_UP",this);
+
             gl.clearColor(0, 0, 0, 1);
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);

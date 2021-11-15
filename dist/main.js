@@ -25,15 +25,27 @@ var TSE;
 (function (TSE) {
     var Engine = (function () {
         function Engine() {
+            this._previousTime = 0;
         }
+        Engine.prototype.onMessage = function (message) {
+            if (message.code == "MOUSE_UP") {
+                var context = message.context;
+                console.log(context.position);
+            }
+        };
         Engine.prototype.start = function () {
             this._canvas = TSE.GLUtilities.initialize();
             TSE.AssetManager.initialize();
+            TSE.InputManager.initialize();
             TSE.ZoneManager.initialize();
+            TSE.Message.subscribe("MOUSE_UP", this);
             TSE.gl.clearColor(0, 0, 0, 1);
+            TSE.gl.enable(TSE.gl.BLEND);
+            TSE.gl.blendFunc(TSE.gl.SRC_ALPHA, TSE.gl.ONE_MINUS_SRC_ALPHA);
             this._basicShader = new TSE.BasicShader();
             this._basicShader.use();
-            TSE.MaterialManager.registerMaterial(new TSE.Material("create", "./assets/texture/sky.jpeg", new TSE.Color(255, 128, 0, 255)));
+            TSE.MaterialManager.registerMaterial(new TSE.Material("sky", "./assets/texture/sky.jpeg", TSE.Color.white()));
+            TSE.MaterialManager.registerMaterial(new TSE.Material("duck", "./assets/texture/duck.png", TSE.Color.white()));
             TSE.ZoneManager.changeZone(0);
             this._projection = TSE.Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);
             this.resize();
@@ -48,8 +60,16 @@ var TSE;
             }
         };
         Engine.prototype.loop = function () {
-            TSE.MessageBus.update(0);
-            TSE.ZoneManager.update(0);
+            this.update();
+            this.render();
+        };
+        Engine.prototype.update = function () {
+            var delta = performance.now() - this._previousTime;
+            TSE.MessageBus.update(delta);
+            TSE.ZoneManager.update(delta);
+            this._previousTime = performance.now();
+        };
+        Engine.prototype.render = function () {
             TSE.gl.clear(TSE.gl.COLOR_BUFFER_BIT);
             TSE.ZoneManager.render(this._basicShader);
             var projectionPosition = this._basicShader.getUniformLocation("u_projection");
@@ -86,7 +106,7 @@ var TSE;
         };
         AssetManager.onAssetLoaded = function (asset) {
             AssetManager._loaderAssets[asset.name] = asset;
-            TSE.Message.send(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + asset.name, this, asset);
+            TSE.Message.send(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + asset.name, this, asset);
         };
         AssetManager.isAssetLoaded = function (assetName) {
             return AssetManager._loaderAssets[assetName] !== undefined;
@@ -194,6 +214,185 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var BehaviorManager = (function () {
+        function BehaviorManager() {
+        }
+        BehaviorManager.registerBuilder = function (builder) {
+            BehaviorManager._registeredBuilders[builder.type] = builder;
+        };
+        BehaviorManager.extractBehavior = function (json) {
+            if (json.type) {
+                if (BehaviorManager._registeredBuilders[json.type] !== undefined) {
+                    return BehaviorManager._registeredBuilders[json.type].buildFromJson(json);
+                }
+                throw new Error("BehaviorManager error - type is missing or builder is not registered for this type.");
+            }
+        };
+        BehaviorManager._registeredBuilders = {};
+        return BehaviorManager;
+    }());
+    TSE.BehaviorManager = BehaviorManager;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var BaseBehavior = (function () {
+        function BaseBehavior(data) {
+            this._data = data;
+            this.name = this._data.name;
+        }
+        BaseBehavior.prototype.setOwner = function (owner) {
+            this._owner = owner;
+        };
+        BaseBehavior.prototype.update = function (time) {
+        };
+        BaseBehavior.prototype.apply = function (userData) {
+        };
+        return BaseBehavior;
+    }());
+    TSE.BaseBehavior = BaseBehavior;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var KeybroadMovementBehaviorData = (function () {
+        function KeybroadMovementBehaviorData() {
+            this.speed = 0.1;
+        }
+        KeybroadMovementBehaviorData.prototype.setFromJson = function (json) {
+            if (json.name == undefined) {
+                throw new Error("Name must be defined in behavior data.");
+            }
+            this.name = json.name;
+            if (json.speed == undefined) {
+                throw new Error("speed must be defined in behavior data.");
+            }
+            this.speed = json.speed;
+        };
+        return KeybroadMovementBehaviorData;
+    }());
+    TSE.KeybroadMovementBehaviorData = KeybroadMovementBehaviorData;
+    var KeybroadMovementBehaviorBuilder = (function () {
+        function KeybroadMovementBehaviorBuilder() {
+        }
+        Object.defineProperty(KeybroadMovementBehaviorBuilder.prototype, "type", {
+            get: function () {
+                return "keybroadMovement";
+            },
+            enumerable: false,
+            configurable: true
+        });
+        ;
+        KeybroadMovementBehaviorBuilder.prototype.buildFromJson = function (json) {
+            var data = new KeybroadMovementBehaviorData();
+            data.setFromJson(json);
+            return new KeybroadMovementBehavior(data);
+        };
+        return KeybroadMovementBehaviorBuilder;
+    }());
+    TSE.KeybroadMovementBehaviorBuilder = KeybroadMovementBehaviorBuilder;
+    var KeybroadMovementBehavior = (function (_super) {
+        __extends(KeybroadMovementBehavior, _super);
+        function KeybroadMovementBehavior(data) {
+            var _this = _super.call(this, data) || this;
+            _this.speed = 0.1;
+            _this.speed = data.speed;
+            return _this;
+        }
+        KeybroadMovementBehavior.prototype.update = function (time) {
+            if (TSE.InputManager.isKeyDown(TSE.Keys.LEFT)) {
+                this._owner.transform.position.x -= this.speed;
+            }
+            if (TSE.InputManager.isKeyDown(TSE.Keys.RIGHT)) {
+                this._owner.transform.position.x += this.speed;
+            }
+            if (TSE.InputManager.isKeyDown(TSE.Keys.UP)) {
+                this._owner.transform.position.y -= this.speed;
+            }
+            if (TSE.InputManager.isKeyDown(TSE.Keys.DOWN)) {
+                this._owner.transform.position.y += this.speed;
+            }
+            _super.prototype.update.call(this, time);
+        };
+        return KeybroadMovementBehavior;
+    }(TSE.BaseBehavior));
+    TSE.KeybroadMovementBehavior = KeybroadMovementBehavior;
+    TSE.BehaviorManager.registerBuilder(new KeybroadMovementBehaviorBuilder);
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var RotationBehaviorData = (function () {
+        function RotationBehaviorData() {
+            this.rotation = TSE.Vector3.zero;
+        }
+        RotationBehaviorData.prototype.setFromJson = function (json) {
+            if (json.name == undefined) {
+                throw new Error("Name must be defined in behavior data.");
+            }
+            this.name = json.name;
+            if (json.rotation !== undefined) {
+                this.rotation.setFromJson(json.rotation);
+            }
+        };
+        return RotationBehaviorData;
+    }());
+    TSE.RotationBehaviorData = RotationBehaviorData;
+    var RotationBehaviorBuilder = (function () {
+        function RotationBehaviorBuilder() {
+        }
+        Object.defineProperty(RotationBehaviorBuilder.prototype, "type", {
+            get: function () {
+                return "rotation";
+            },
+            enumerable: false,
+            configurable: true
+        });
+        ;
+        RotationBehaviorBuilder.prototype.buildFromJson = function (json) {
+            var data = new RotationBehaviorData();
+            data.setFromJson(json);
+            return new RotationBehavior(data);
+        };
+        return RotationBehaviorBuilder;
+    }());
+    TSE.RotationBehaviorBuilder = RotationBehaviorBuilder;
+    var RotationBehavior = (function (_super) {
+        __extends(RotationBehavior, _super);
+        function RotationBehavior(data) {
+            var _this = _super.call(this, data) || this;
+            _this._rotation = data.rotation;
+            return _this;
+        }
+        RotationBehavior.prototype.update = function (time) {
+            this._owner.transform.rotation.add(this._rotation);
+            _super.prototype.update.call(this, time);
+        };
+        return RotationBehavior;
+    }(TSE.BaseBehavior));
+    TSE.RotationBehavior = RotationBehavior;
+    TSE.BehaviorManager.registerBuilder(new RotationBehaviorBuilder);
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var ComponentManager = (function () {
+        function ComponentManager() {
+        }
+        ComponentManager.registerBuilder = function (builder) {
+            ComponentManager._registeredBuilders[builder.type] = builder;
+        };
+        ComponentManager.extractComponent = function (json) {
+            if (json.type) {
+                if (ComponentManager._registeredBuilders[json.type] !== undefined) {
+                    return ComponentManager._registeredBuilders[json.type].buildFromJson(json);
+                }
+                throw new Error("ComponentManager error - type is missing or builder is not registered for this type.");
+            }
+        };
+        ComponentManager._registeredBuilders = {};
+        return ComponentManager;
+    }());
+    TSE.ComponentManager = ComponentManager;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var BaseComponent = (function () {
         function BaseComponent(data) {
             this._data = data;
@@ -221,27 +420,6 @@ var TSE;
         return BaseComponent;
     }());
     TSE.BaseComponent = BaseComponent;
-})(TSE || (TSE = {}));
-var TSE;
-(function (TSE) {
-    var ComponentManager = (function () {
-        function ComponentManager() {
-        }
-        ComponentManager.registerBuilder = function (builder) {
-            ComponentManager._registeredBuilders[builder.type] = builder;
-        };
-        ComponentManager.extractComponent = function (json) {
-            if (json.type) {
-                if (ComponentManager._registeredBuilders[json.type] !== undefined) {
-                    return ComponentManager._registeredBuilders[json.type].buildFromJson(json);
-                }
-                throw new Error("ComponentManager error - type is missing or builder is not registered for this type.");
-            }
-        };
-        ComponentManager._registeredBuilders = {};
-        return ComponentManager;
-    }());
-    TSE.ComponentManager = ComponentManager;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
@@ -299,6 +477,65 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var AnimatedSpriteComponentData = (function (_super) {
+        __extends(AnimatedSpriteComponentData, _super);
+        function AnimatedSpriteComponentData() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        AnimatedSpriteComponentData.prototype.setFromJson = function (json) {
+            _super.prototype.setFromJson.call(this, json);
+            this.frameWidth = json.frameWidth;
+            this.frameHeight = json.frameHeight;
+            this.frameCount = json.frameCount;
+            this.frameSequence = json.frameSequence;
+        };
+        return AnimatedSpriteComponentData;
+    }(TSE.SpriteComponentData));
+    TSE.AnimatedSpriteComponentData = AnimatedSpriteComponentData;
+    var AnimatedSpriteComponentBuilder = (function () {
+        function AnimatedSpriteComponentBuilder() {
+        }
+        Object.defineProperty(AnimatedSpriteComponentBuilder.prototype, "type", {
+            get: function () {
+                return "animatedSprite";
+            },
+            enumerable: false,
+            configurable: true
+        });
+        AnimatedSpriteComponentBuilder.prototype.buildFromJson = function (json) {
+            var data = new AnimatedSpriteComponentData();
+            data.setFromJson(json);
+            return new AnimatedSpriteComponent(data);
+        };
+        return AnimatedSpriteComponentBuilder;
+    }());
+    TSE.AnimatedSpriteComponentBuilder = AnimatedSpriteComponentBuilder;
+    var AnimatedSpriteComponent = (function (_super) {
+        __extends(AnimatedSpriteComponent, _super);
+        function AnimatedSpriteComponent(data) {
+            var _this = _super.call(this, data) || this;
+            var name = data.name, materialName = data.materialName, frameCount = data.frameCount, frameSequence = data.frameSequence, frameWidth = data.frameWidth, frameHeight = data.frameHeight;
+            _this._sprite = new TSE.AnimatedSprite(name, materialName, frameWidth, frameHeight, frameWidth, frameHeight, frameCount, frameSequence);
+            return _this;
+        }
+        AnimatedSpriteComponent.prototype.update = function (time) {
+            this._sprite.update(time);
+            _super.prototype.update.call(this, time);
+        };
+        AnimatedSpriteComponent.prototype.load = function () {
+            this._sprite.load();
+        };
+        AnimatedSpriteComponent.prototype.render = function (shader) {
+            this._sprite.draw(shader, this.owner.worldMatrix);
+            _super.prototype.render.call(this, shader);
+        };
+        return AnimatedSpriteComponent;
+    }(TSE.BaseComponent));
+    TSE.AnimatedSpriteComponent = AnimatedSpriteComponent;
+    TSE.ComponentManager.registerBuilder(new AnimatedSpriteComponentBuilder);
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var GLUtilities = (function () {
         function GLUtilities() {
         }
@@ -329,19 +566,20 @@ var TSE;
 (function (TSE) {
     var AttributeInfo = (function () {
         function AttributeInfo() {
+            this.offset = 0;
         }
         return AttributeInfo;
     }());
     TSE.AttributeInfo = AttributeInfo;
     var GLBuffer = (function () {
-        function GLBuffer(elementSize, dataType, targetBufferType, mode) {
+        function GLBuffer(dataType, targetBufferType, mode) {
             if (dataType === void 0) { dataType = TSE.gl.FLOAT; }
             if (targetBufferType === void 0) { targetBufferType = TSE.gl.ARRAY_BUFFER; }
             if (mode === void 0) { mode = TSE.gl.TRIANGLES; }
             this._hasAttributeLocation = false;
             this._data = [];
             this._attributes = [];
-            this._elementSize = elementSize;
+            this._elementSize = 0;
             this._dataType = dataType;
             this._targetBufferType = targetBufferType;
             this._mode = mode;
@@ -362,7 +600,6 @@ var TSE;
                 default:
                     throw new Error("Unrecognized data type:" + dataType.toString());
             }
-            this._stride = this._elementSize * this._typeSize;
             this._buffer = TSE.gl.createBuffer();
         }
         GLBuffer.prototype.bind = function (normalized) {
@@ -385,13 +622,23 @@ var TSE;
         };
         GLBuffer.prototype.addAttributeLocation = function (info) {
             this._hasAttributeLocation = true;
+            info.offset = this._elementSize;
             this._attributes.push(info);
+            this._elementSize += info.size;
+            this._stride = this._elementSize * this._typeSize;
+        };
+        GLBuffer.prototype.setData = function (data) {
+            this.clearData();
+            this.pushBackData(data);
         };
         GLBuffer.prototype.pushBackData = function (data) {
             for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
                 var d = data_1[_i];
                 this._data.push(d);
             }
+        };
+        GLBuffer.prototype.clearData = function () {
+            this._data.length = 0;
         };
         GLBuffer.prototype.upload = function () {
             TSE.gl.bindBuffer(this._targetBufferType, this._buffer);
@@ -539,6 +786,172 @@ var TSE;
         return BasicShader;
     }(TSE.Shader));
     TSE.BasicShader = BasicShader;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var Sprite = (function () {
+        function Sprite(name, materialName, width, height) {
+            if (width === void 0) { width = 100; }
+            if (height === void 0) { height = 100; }
+            this._vertices = [];
+            this._name = name;
+            this._width = width;
+            this._height = height;
+            this._materialName = materialName;
+            this._material = TSE.MaterialManager.getMaterial(materialName);
+        }
+        Object.defineProperty(Sprite.prototype, "name", {
+            get: function () {
+                return this._name;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Sprite.prototype.load = function () {
+            this._buffer = new TSE.GLBuffer();
+            var positionAttribute = new TSE.AttributeInfo();
+            positionAttribute.location = 0;
+            positionAttribute.size = 3;
+            this._buffer.addAttributeLocation(positionAttribute);
+            var textCoordAttribute = new TSE.AttributeInfo();
+            textCoordAttribute.location = 1;
+            textCoordAttribute.size = 2;
+            this._buffer.addAttributeLocation(textCoordAttribute);
+            this._vertices = [
+                new TSE.Vertex(0, 0, 0, 0, 0),
+                new TSE.Vertex(0, this._height, 0, 0, 1.0),
+                new TSE.Vertex(this._width, this._height, 0, 1.0, 1.0),
+                new TSE.Vertex(this._width, this._height, 0, 1.0, 1.0),
+                new TSE.Vertex(this._width, 0, 0, 1.0, 0),
+                new TSE.Vertex(0, 0, 0, 0, 0)
+            ];
+            for (var _i = 0, _a = this._vertices; _i < _a.length; _i++) {
+                var v = _a[_i];
+                this._buffer.pushBackData(v.toArray());
+            }
+            this._buffer.upload();
+            this._buffer.unbind();
+        };
+        Sprite.prototype.update = function (time) {
+        };
+        Sprite.prototype.draw = function (shader, model) {
+            var colorLocation = shader.getUniformLocation("u_tint");
+            TSE.gl.uniform4fv(colorLocation, this._material.tint.toFloat32Array());
+            var modelLocation = shader.getUniformLocation("u_model");
+            TSE.gl.uniformMatrix4fv(modelLocation, false, model.toFloat32Array());
+            if (this._material.diffuseTexture) {
+                this._material.diffuseTexture.activateAndBind(0);
+                var diffuseLocation = shader.getUniformLocation("u_diffuse");
+                TSE.gl.uniform1i(diffuseLocation, 0);
+            }
+            this._buffer.bind();
+            this._buffer.draw();
+        };
+        Sprite.prototype.destory = function () {
+            this._buffer.destroy();
+            TSE.MaterialManager.releaseMaterial(this._materialName);
+            this._material = null;
+        };
+        return Sprite;
+    }());
+    TSE.Sprite = Sprite;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var UVInfo = (function () {
+        function UVInfo(min, max) {
+            this.min = min;
+            this.max = max;
+        }
+        return UVInfo;
+    }());
+    var AnimatedSprite = (function (_super) {
+        __extends(AnimatedSprite, _super);
+        function AnimatedSprite(name, materialName, width, height, frameWidth, frameHeight, frameCount, frameSequence) {
+            if (width === void 0) { width = 100; }
+            if (height === void 0) { height = 100; }
+            if (frameWidth === void 0) { frameWidth = 100; }
+            if (frameHeight === void 0) { frameHeight = 100; }
+            if (frameCount === void 0) { frameCount = 1; }
+            if (frameSequence === void 0) { frameSequence = []; }
+            var _this = _super.call(this, name, materialName, width, height) || this;
+            _this._currentFrame = 0;
+            _this._frameUVS = [];
+            _this._frameTime = 333;
+            _this._currentTime = 0;
+            _this._assetLoaded = false;
+            _this._frameHeight = frameHeight;
+            _this._frameWidth = frameWidth;
+            _this._frameCount = frameCount;
+            _this._frameSequence = frameSequence;
+            TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + _this._material.diffuseTextureName, _this);
+            return _this;
+        }
+        AnimatedSprite.prototype.onMessage = function (message) {
+            if (message.code == TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + this._material.diffuseTextureName) {
+                this._assetLoaded = true;
+                console.log(this._assetLoaded);
+                var asset = message.context;
+                this._assetWidth = asset.width;
+                this._assetHeight = asset.height;
+                this.calculateUVs();
+            }
+        };
+        AnimatedSprite.prototype.load = function () {
+            _super.prototype.load.call(this);
+        };
+        AnimatedSprite.prototype.calculateUVs = function () {
+            var totalWidth = 0;
+            var yValue = 0;
+            for (var i = 0; i < this._frameCount; i++) {
+                totalWidth += i * this._frameWidth;
+                if (totalWidth > this._assetWidth) {
+                    yValue++;
+                    totalWidth = 0;
+                }
+                var u = (i * this._frameWidth) / this._assetWidth;
+                var v = (yValue * this._frameHeight) / this._assetHeight;
+                var min = new TSE.Vector2(u, v);
+                var uMax = ((i * this._frameWidth) + this._frameWidth) / this._assetWidth;
+                var vMax = ((yValue * this._frameHeight) + this._frameHeight) / this._assetHeight;
+                var max = new TSE.Vector2(uMax, vMax);
+                this._frameUVS.push(new UVInfo(min, max));
+            }
+        };
+        AnimatedSprite.prototype.update = function (time) {
+            if (!this._assetLoaded) {
+                return;
+            }
+            this._currentTime += time;
+            if (this._currentTime > this._frameTime) {
+                this._currentFrame++;
+                this._currentTime = 0;
+                if (this._currentFrame >= this._frameSequence.length) {
+                    this._currentFrame = 0;
+                }
+                var frameUVs = this._frameSequence[this._currentFrame];
+                this._vertices[0].texCoords.copyFrom(this._frameUVS[frameUVs].min);
+                this._vertices[1].texCoords = new TSE.Vector2(this._frameUVS[frameUVs].min.x, this._frameUVS[frameUVs].max.y);
+                this._vertices[2].texCoords.copyFrom(this._frameUVS[frameUVs].max);
+                this._vertices[3].texCoords.copyFrom(this._frameUVS[frameUVs].max);
+                this._vertices[4].texCoords = new TSE.Vector2(this._frameUVS[frameUVs].max.x, this._frameUVS[frameUVs].min.y);
+                this._vertices[5].texCoords.copyFrom(this._frameUVS[frameUVs].min);
+                this._buffer.clearData();
+                for (var _i = 0, _a = this._vertices; _i < _a.length; _i++) {
+                    var v = _a[_i];
+                    this._buffer.pushBackData(v.toArray());
+                }
+                this._buffer.upload();
+                this._buffer.unbind();
+            }
+            _super.prototype.update.call(this, time);
+        };
+        AnimatedSprite.prototype.destory = function () {
+            _super.prototype.destory.call(this);
+        };
+        return AnimatedSprite;
+    }(TSE.Sprite));
+    TSE.AnimatedSprite = AnimatedSprite;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
@@ -749,74 +1162,6 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
-    var Sprite = (function () {
-        function Sprite(name, materialName, width, height) {
-            if (width === void 0) { width = 100; }
-            if (height === void 0) { height = 100; }
-            this.position = new TSE.Vector3();
-            this._name = name;
-            this._width = width;
-            this._height = height;
-            this._materialName = materialName;
-            this._material = TSE.MaterialManager.getMaterial(materialName);
-        }
-        Object.defineProperty(Sprite.prototype, "name", {
-            get: function () {
-                return this._name;
-            },
-            enumerable: false,
-            configurable: true
-        });
-        Sprite.prototype.load = function () {
-            this._buffer = new TSE.GLBuffer(5);
-            var positionAttribute = new TSE.AttributeInfo();
-            positionAttribute.location = 0;
-            positionAttribute.offset = 0;
-            positionAttribute.size = 3;
-            this._buffer.addAttributeLocation(positionAttribute);
-            var textCoordAttribute = new TSE.AttributeInfo();
-            textCoordAttribute.location = 1;
-            textCoordAttribute.offset = 3;
-            textCoordAttribute.size = 2;
-            this._buffer.addAttributeLocation(textCoordAttribute);
-            var vertices = [
-                0, 0, 0, 0, 0,
-                0, this._height, 0, 0, 1.0,
-                this._width, this._height, 0, 1.0, 1.0,
-                this._width, this._height, 0, 1.0, 1.0,
-                this._width, 0, 0, 1.0, 0,
-                0, 0, 0, 0, 0
-            ];
-            this._buffer.pushBackData(vertices);
-            this._buffer.upload();
-            this._buffer.unbind();
-        };
-        Sprite.prototype.update = function (time) {
-        };
-        Sprite.prototype.draw = function (shader, model) {
-            var colorLocation = shader.getUniformLocation("u_tint");
-            TSE.gl.uniform4fv(colorLocation, this._material.tint.toFloat32Array());
-            var modelLocation = shader.getUniformLocation("u_model");
-            TSE.gl.uniformMatrix4fv(modelLocation, false, model.toFloat32Array());
-            if (this._material.diffuseTexture) {
-                this._material.diffuseTexture.activateAndBind(0);
-                var diffuseLocation = shader.getUniformLocation("u_diffuse");
-                TSE.gl.uniform1i(diffuseLocation, 0);
-            }
-            this._buffer.bind();
-            this._buffer.draw();
-        };
-        Sprite.prototype.destory = function () {
-            this._buffer.destroy();
-            TSE.MaterialManager.releaseMaterial(this._materialName);
-            this._material = null;
-        };
-        return Sprite;
-    }());
-    TSE.Sprite = Sprite;
-})(TSE || (TSE = {}));
-var TSE;
-(function (TSE) {
     var LEVEL = 0;
     var BORDER = 0;
     var TEMP_IMAGE_DATA = new Uint8Array([255, 255, 255, 255]);
@@ -829,16 +1174,18 @@ var TSE;
             this._width = width;
             this._height = height;
             this._handle = TSE.gl.createTexture();
-            TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + this._name, this);
             this.bind();
             TSE.gl.texImage2D(TSE.gl.TEXTURE_2D, LEVEL, TSE.gl.RGBA, 1, 1, BORDER, TSE.gl.RGBA, TSE.gl.UNSIGNED_BYTE, TEMP_IMAGE_DATA);
             var asset = TSE.AssetManager.getAsset(this.name);
             if (asset !== undefined) {
                 this.loadTextureFromAsset(asset);
             }
+            else {
+                TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + this._name, this);
+            }
         }
         Texture.prototype.onMessage = function (message) {
-            if (message.code === TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + this._name) {
+            if (message.code === TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + this._name) {
                 this.loadTextureFromAsset(message.context);
             }
         };
@@ -879,6 +1226,7 @@ var TSE;
         Texture.prototype.activateAndBind = function (textureUnit) {
             if (textureUnit === void 0) { textureUnit = 0; }
             TSE.gl.activeTexture(TSE.gl.TEXTURE0 + textureUnit);
+            this.bind();
         };
         Texture.prototype.loadTextureFromAsset = function (asset) {
             this._width = asset.width;
@@ -891,8 +1239,9 @@ var TSE;
             else {
                 TSE.gl.texParameteri(TSE.gl.TEXTURE_2D, TSE.gl.TEXTURE_WRAP_S, TSE.gl.CLAMP_TO_EDGE);
                 TSE.gl.texParameteri(TSE.gl.TEXTURE_2D, TSE.gl.TEXTURE_WRAP_T, TSE.gl.CLAMP_TO_EDGE);
-                TSE.gl.texParameteri(TSE.gl.TEXTURE_2D, TSE.gl.TEXTURE_MIN_FILTER, TSE.gl.LINEAR);
             }
+            TSE.gl.texParameteri(TSE.gl.TEXTURE_2D, TSE.gl.TEXTURE_MIN_FILTER, TSE.gl.NEAREST);
+            TSE.gl.texParameteri(TSE.gl.TEXTURE_2D, TSE.gl.TEXTURE_MAG_FILTER, TSE.gl.NEAREST);
             this._isLoaded = true;
         };
         Texture.prototype.isPowerOf2 = function () {
@@ -947,6 +1296,116 @@ var TSE;
         return TextureManager;
     }());
     TSE.TextureManager = TextureManager;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var Vertex = (function () {
+        function Vertex(x, y, z, tu, tv) {
+            if (x === void 0) { x = 0; }
+            if (y === void 0) { y = 0; }
+            if (z === void 0) { z = 0; }
+            if (tu === void 0) { tu = 0; }
+            if (tv === void 0) { tv = 0; }
+            this.position = TSE.Vector3.zero;
+            this.texCoords = TSE.Vector2.zero;
+            this.position.x = x;
+            this.position.y = y;
+            this.position.z = z;
+            this.texCoords.x = tu;
+            this.texCoords.y = tv;
+        }
+        Vertex.prototype.toArray = function () {
+            var array = [];
+            array = array.concat(this.position.toArray());
+            array = array.concat(this.texCoords.toArray());
+            return array;
+        };
+        Vertex.prototype.toFloat32Array = function () {
+            return new Float32Array(this.toArray());
+        };
+        return Vertex;
+    }());
+    TSE.Vertex = Vertex;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var Keys;
+    (function (Keys) {
+        Keys[Keys["LEFT"] = 37] = "LEFT";
+        Keys[Keys["UP"] = 38] = "UP";
+        Keys[Keys["RIGHT"] = 39] = "RIGHT";
+        Keys[Keys["DOWN"] = 40] = "DOWN";
+    })(Keys = TSE.Keys || (TSE.Keys = {}));
+    var MouseContent = (function () {
+        function MouseContent(leftDown, rightDown, position) {
+            this.leftDown = leftDown;
+            this.rightDown = rightDown;
+            this.position = position;
+        }
+        return MouseContent;
+    }());
+    TSE.MouseContent = MouseContent;
+    var InputManager = (function () {
+        function InputManager() {
+        }
+        InputManager.initialize = function () {
+            for (var i = 0; i < 255; i++) {
+                InputManager._key[i] = false;
+            }
+            window.addEventListener("keydown", InputManager.onKeyDown);
+            window.addEventListener("keyup", InputManager.onKeyUp);
+            window.addEventListener("mousemove", InputManager.onMouseMove);
+            window.addEventListener("mousedown", InputManager.onMouseDown);
+            window.addEventListener("mouseup", InputManager.onMouseUp);
+        };
+        InputManager.isKeyDown = function (key) {
+            return InputManager._key[key];
+        };
+        InputManager.onKeyDown = function (event) {
+            InputManager._key[event.keyCode] = true;
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        };
+        InputManager.onKeyUp = function (event) {
+            InputManager._key[event.keyCode] = false;
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        };
+        InputManager.getMousePosition = function () {
+            return new TSE.Vector2(this._mouseX, this._mouseY);
+        };
+        InputManager.onMouseMove = function (event) {
+            InputManager._previousMouseX = InputManager._mouseX;
+            InputManager._previousMouseY = InputManager._mouseY;
+            InputManager._mouseX = event.clientX;
+            InputManager._mouseY = event.clientY;
+        };
+        InputManager.onMouseDown = function (event) {
+            if (event.button == 0) {
+                this._leftDown = true;
+            }
+            else if (event.button == 2) {
+                this._rightDown = true;
+            }
+            TSE.Message.send("MOUSE_DOWN", this, new MouseContent(InputManager._leftDown, InputManager._rightDown, InputManager.getMousePosition()));
+        };
+        InputManager.onMouseUp = function (event) {
+            if (event.button == 0) {
+                this._leftDown = false;
+            }
+            else if (event.button == 2) {
+                this._rightDown = false;
+            }
+            TSE.Message.send("MOUSE_UP", this, new MouseContent(InputManager._leftDown, InputManager._rightDown, InputManager.getMousePosition()));
+        };
+        InputManager._key = [];
+        InputManager._leftDown = false;
+        InputManager._rightDown = false;
+        return InputManager;
+    }());
+    TSE.InputManager = InputManager;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
@@ -1161,8 +1620,26 @@ var TSE;
             enumerable: false,
             configurable: true
         });
+        Object.defineProperty(Vector2, "zero", {
+            get: function () {
+                return new Vector2();
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(Vector2, "one", {
+            get: function () {
+                return new Vector2(1, 1);
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Vector2.prototype.copyFrom = function (vector2) {
+            this._x = vector2.x;
+            this._y = vector2.y;
+        };
         Vector2.prototype.toArray = function () {
-            return [this._x, this.y];
+            return [this._x, this._y];
         };
         Vector2.prototype.toFloat32Array = function () {
             return new Float32Array(this.toArray());
@@ -1213,7 +1690,7 @@ var TSE;
             configurable: true
         });
         Vector3.prototype.toArray = function () {
-            return [this._x, this.y, this.z];
+            return [this._x, this._y, this._z];
         };
         Vector3.prototype.toFloat32Array = function () {
             return new Float32Array(this.toArray());
@@ -1242,6 +1719,31 @@ var TSE;
             this._x = +x || 0;
             this._y = +y || 0;
             this._z = +z || 0;
+        };
+        Vector3.prototype.add = function (v) {
+            var x = v.x, y = v.y, z = v.z;
+            this.x += x;
+            this.y += y;
+            this.z += z;
+            return this;
+        };
+        Vector3.prototype.subtract = function (v) {
+            this._x -= v._x;
+            this._y -= v._y;
+            this._z -= v._z;
+            return this;
+        };
+        Vector3.prototype.multiply = function (v) {
+            this._x *= v._x;
+            this._y *= v._y;
+            this._z *= v._z;
+            return this;
+        };
+        Vector3.prototype.divide = function (v) {
+            this._x /= v._x;
+            this._y /= v._y;
+            this._z /= v._z;
+            return this;
         };
         return Vector3;
     }());
@@ -1394,6 +1896,7 @@ var TSE;
             this._children = [];
             this._isLoaded = false;
             this._components = [];
+            this._behaviors = [];
             this._localMatrix = TSE.Martix4.identity();
             this._worldMatrix = TSE.Martix4.identity();
             this.transform = new TSE.Transform();
@@ -1458,6 +1961,10 @@ var TSE;
             this._components.push(component);
             component.setOwner(this);
         };
+        SimObject.prototype.addBehavior = function (behaviors) {
+            this._behaviors.push(behaviors);
+            behaviors.setOwner(this);
+        };
         SimObject.prototype.load = function () {
             this._isLoaded = true;
             for (var _i = 0, _a = this._children; _i < _a.length; _i++) {
@@ -1479,6 +1986,10 @@ var TSE;
             for (var _b = 0, _c = this._components; _b < _c.length; _b++) {
                 var component = _c[_b];
                 component.update(time);
+            }
+            for (var _d = 0, _e = this._behaviors; _d < _e.length; _d++) {
+                var behavior = _e[_d];
+                behavior.update(time);
             }
         };
         SimObject.prototype.render = function (shader) {
@@ -1585,7 +2096,6 @@ var TSE;
             var name;
             if (dataSection.name !== undefined) {
                 name = dataSection.name;
-                console.log(name);
             }
             this._globalId++;
             var simObjet = new TSE.SimObject(this._globalId, name, this._scene);
@@ -1599,9 +2109,16 @@ var TSE;
                     simObjet.addComponent(component);
                 }
             }
+            if (dataSection.behaviors !== undefined) {
+                for (var _b = 0, _c = dataSection.behaviors; _b < _c.length; _b++) {
+                    var element = _c[_b];
+                    var behavior = TSE.BehaviorManager.extractBehavior(element);
+                    simObjet.addBehavior(behavior);
+                }
+            }
             if (dataSection.children !== undefined) {
-                for (var _b = 0, _c = dataSection.children; _b < _c.length; _b++) {
-                    var object = _c[_b];
+                for (var _d = 0, _e = dataSection.children; _d < _e.length; _d++) {
+                    var object = _e[_d];
                     this.loadSimObject(object, simObjet);
                 }
             }
@@ -1626,7 +2143,7 @@ var TSE;
         };
         ZoneManager.initialize = function () {
             ZoneManager._inst = new ZoneManager();
-            ZoneManager._registeredZones[0] = "assets/zones/testZone.json";
+            ZoneManager._registeredZones[0] = "./assets/zones/testZone.json";
         };
         ZoneManager.changeZone = function (id) {
             if (ZoneManager._activeZone !== undefined) {
@@ -1640,7 +2157,7 @@ var TSE;
                     this.loadZone(asset);
                 }
                 else {
-                    TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + "::" + ZoneManager._registeredZones[id], ZoneManager._inst);
+                    TSE.Message.subscribe(TSE.MESSAGE_ASSET_LOADED_ASSET_LOADED + ZoneManager._registeredZones[id], ZoneManager._inst);
                     TSE.AssetManager.loadAsset(ZoneManager._registeredZones[id]);
                 }
             }

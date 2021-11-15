@@ -1,11 +1,12 @@
 declare let engine: TSE.Engine;
 declare namespace TSE {
-    class Engine {
+    class Engine implements IMessageHandler {
         private _canvas;
         private _basicShader;
         private _projection;
         private _previousTime;
         constructor();
+        onMessage(message: Message): void;
         start(): void;
         resize(): void;
         private loop;
@@ -101,6 +102,22 @@ declare namespace TSE {
         setOwner(owner: SimObject): void;
         update(time: number): void;
         apply(userData: any): void;
+    }
+}
+declare namespace TSE {
+    class KeybroadMovementBehaviorData implements IBehaviorData {
+        name: string;
+        speed: number;
+        setFromJson(json: any): void;
+    }
+    class KeybroadMovementBehaviorBuilder implements IBehaviorBuilder {
+        get type(): string;
+        buildFromJson(json: any): IBehavior;
+    }
+    class KeybroadMovementBehavior extends BaseBehavior {
+        speed: number;
+        constructor(data: KeybroadMovementBehaviorData);
+        update(time: number): void;
     }
 }
 declare namespace TSE {
@@ -386,6 +403,37 @@ declare namespace TSE {
         constructor(x?: number, y?: number, z?: number, tu?: number, tv?: number);
         toArray(): number[];
         toFloat32Array(): Float32Array;
+    }
+}
+declare namespace TSE {
+    enum Keys {
+        LEFT = 37,
+        UP = 38,
+        RIGHT = 39,
+        DOWN = 40
+    }
+    class MouseContent {
+        leftDown: boolean;
+        rightDown: boolean;
+        position: Vector2;
+        constructor(leftDown: boolean, rightDown: boolean, position: Vector2);
+    }
+    class InputManager {
+        private static _key;
+        private static _mouseX;
+        private static _mouseY;
+        private static _previousMouseX;
+        private static _previousMouseY;
+        private static _leftDown;
+        private static _rightDown;
+        static initialize(): void;
+        static isKeyDown(key: Keys): boolean;
+        static onKeyDown(event: KeyboardEvent): boolean;
+        static onKeyUp(event: KeyboardEvent): boolean;
+        static getMousePosition(): Vector2;
+        static onMouseMove(event: MouseEvent): void;
+        static onMouseDown(event: MouseEvent): void;
+        static onMouseUp(event: MouseEvent): void;
     }
 }
 declare namespace TSE {

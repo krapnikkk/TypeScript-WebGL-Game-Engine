@@ -9,22 +9,33 @@
       "../core/assets/assetManager.ts",
       "../core/assets/imageAssetLoader.ts",
       "../core/assets/jsonAssetLoader.ts",
-      "../core/components/BaseComponent.ts",
+      "../core/behaviour/BehaviorManager.ts",
+      "../core/behaviour/IBehavior.ts",
+      "../core/behaviour/IBehaviorBuilder.ts",
+      "../core/behaviour/IBehaviorData.ts",
+      "../core/behaviour/baseBehavior.ts",
+      "../core/behaviour/keybroadMovementBehavior.ts",
+      "../core/behaviour/rotationBehavior.ts",
       "../core/components/ComponentManager.ts",
+      "../core/components/BaseComponent.ts",
+      "../core/components/SpriteComponent.ts",
+      "../core/components/AnimatedSpriteComponent.ts",
       "../core/components/IComponent.ts",
       "../core/components/IComponentBuilder.ts",
       "../core/components/IComponentData.ts",
-      "../core/components/SpriteComponent.ts",
       "../core/gl/gl.ts",
       "../core/gl/glBuffer.ts",
       "../core/gl/shader.ts",
       "../core/gl/shader/basicShader.ts",
+      "../core/graphics/sprite.ts",
+      "../core/graphics/animatedSprite.ts",
       "../core/graphics/color.ts",
       "../core/graphics/material.ts",
       "../core/graphics/materialManager.ts",
-      "../core/graphics/sprite.ts",
       "../core/graphics/texture.ts",
       "../core/graphics/textureManager.ts",
+      "../core/graphics/vertex.ts",
+      "../core/input/InputManager.ts",
       "../core/math/matrix4.ts",
       "../core/math/transform.ts",
       "../core/math/vector2.ts",
@@ -48,7 +59,7 @@
         },
         {
           "pos": 763,
-          "end": 64247,
+          "end": 85254,
           "kind": "text"
         }
       ],
@@ -62,7 +73,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 13944,
+          "end": 19226,
           "kind": "text"
         }
       ]

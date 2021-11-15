@@ -25,6 +25,13 @@
                     "frameCount": 3,
                     "frameSequence": [0,1,2,1]
                 }
+            ],
+            "behaviors":[
+                {
+                    "name":"movement",
+                    "type":"keybroadMovement",
+                    "speed":2.5
+                }
             ]
         },
         {
