@@ -31,6 +31,7 @@ var TSE;
             if (message.code == "MOUSE_UP") {
                 var context = message.context;
                 console.log(context.position);
+                TSE.AudioManager.playSound("flap");
             }
         };
         Engine.prototype.start = function () {
@@ -46,6 +47,7 @@ var TSE;
             this._basicShader.use();
             TSE.MaterialManager.registerMaterial(new TSE.Material("sky", "./assets/texture/sky.jpeg", TSE.Color.white()));
             TSE.MaterialManager.registerMaterial(new TSE.Material("duck", "./assets/texture/duck.png", TSE.Color.white()));
+            TSE.AudioManager.loadSoundFile("flap", "./assets/audio/flap.mp3", false);
             TSE.ZoneManager.changeZone(0);
             this._projection = TSE.Martix4.orthographic(0, this._canvas.width, this._canvas.height, 0, -100.0, 100.0);
             this.resize();
@@ -211,6 +213,78 @@ var TSE;
         return JsonAssetLoader;
     }());
     TSE.JsonAssetLoader = JsonAssetLoader;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var SoundEffect = (function () {
+        function SoundEffect(assetPath, loop) {
+            this._player = new Audio(assetPath);
+            this._player.loop = loop;
+        }
+        Object.defineProperty(SoundEffect.prototype, "loop", {
+            get: function () {
+                return this._player.loop;
+            },
+            set: function (value) {
+                this._player.loop = value;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        SoundEffect.prototype.destroy = function () {
+            this._player = null;
+        };
+        SoundEffect.prototype.play = function () {
+            if (!this._player.paused) {
+                this.stop();
+            }
+            this._player.play();
+        };
+        SoundEffect.prototype.pause = function () {
+            this._player.pause();
+        };
+        SoundEffect.prototype.stop = function () {
+            this._player.pause();
+            this._player.currentTime = 0;
+        };
+        return SoundEffect;
+    }());
+    TSE.SoundEffect = SoundEffect;
+    var AudioManager = (function () {
+        function AudioManager() {
+        }
+        AudioManager.loadSoundFile = function (name, audioPath, loop) {
+            AudioManager._soundEffects[name] = new SoundEffect(audioPath, loop);
+        };
+        AudioManager.playSound = function (name) {
+            if (AudioManager._soundEffects[name]) {
+                AudioManager._soundEffects[name].play();
+            }
+        };
+        AudioManager.stopSound = function (name) {
+            if (AudioManager._soundEffects[name]) {
+                AudioManager._soundEffects[name].stop();
+            }
+        };
+        AudioManager.pauseSound = function (name) {
+            if (AudioManager._soundEffects[name]) {
+                AudioManager._soundEffects[name].pause();
+            }
+        };
+        AudioManager.pauseAll = function () {
+            for (var name_1 in AudioManager._soundEffects) {
+                AudioManager._soundEffects[name_1].pause();
+            }
+        };
+        AudioManager.stopAll = function () {
+            for (var name_2 in AudioManager._soundEffects) {
+                AudioManager._soundEffects[name_2].stop();
+            }
+        };
+        AudioManager._soundEffects = {};
+        return AudioManager;
+    }());
+    TSE.AudioManager = AudioManager;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
@@ -735,8 +809,8 @@ var TSE;
                 if (!attributeInfo) {
                     break;
                 }
-                var name_1 = attributeInfo.name;
-                this._attributes[name_1] = TSE.gl.getAttribLocation(this._program, name_1);
+                var name_3 = attributeInfo.name;
+                this._attributes[name_3] = TSE.gl.getAttribLocation(this._program, name_3);
             }
         };
         Shader.prototype.detectUniforms = function () {
@@ -746,8 +820,8 @@ var TSE;
                 if (!uniformInfo) {
                     break;
                 }
-                var name_2 = uniformInfo.name;
-                this._uniforms[name_2] = TSE.gl.getUniformLocation(this._program, name_2);
+                var name_4 = uniformInfo.name;
+                this._uniforms[name_4] = TSE.gl.getUniformLocation(this._program, name_4);
             }
         };
         Shader.prototype.getAttributeLocation = function (name) {

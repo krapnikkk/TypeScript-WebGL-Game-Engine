@@ -67,6 +67,28 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
+    class SoundEffect {
+        assetPath: string;
+        private _player;
+        constructor(assetPath: string, loop: boolean);
+        get loop(): boolean;
+        set loop(value: boolean);
+        destroy(): void;
+        play(): void;
+        pause(): void;
+        stop(): void;
+    }
+    class AudioManager {
+        private static _soundEffects;
+        static loadSoundFile(name: string, audioPath: string, loop: boolean): void;
+        static playSound(name: string): void;
+        static stopSound(name: string): void;
+        static pauseSound(name: string): void;
+        static pauseAll(): void;
+        static stopAll(): void;
+    }
+}
+declare namespace TSE {
     class BehaviorManager {
         private static _registeredBuilders;
         static registerBuilder(builder: IBehaviorBuilder): void;

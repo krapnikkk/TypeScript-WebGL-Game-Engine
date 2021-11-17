@@ -11,6 +11,8 @@ namespace TSE {
             if(message.code == "MOUSE_UP"){
                 let context = message.context as MouseContent;
                 console.log(context.position);
+
+                AudioManager.playSound("flap")
             }
         }
 
@@ -33,6 +35,7 @@ namespace TSE {
             MaterialManager.registerMaterial(new Material("sky", "./assets/texture/sky.jpeg", Color.white()))
             MaterialManager.registerMaterial(new Material("duck", "./assets/texture/duck.png", Color.white()))
 
+            AudioManager.loadSoundFile("flap","./assets/audio/flap.mp3",false);
             // todo id from config
             ZoneManager.changeZone(0);
 

@@ -9,6 +9,7 @@
       "../core/assets/assetManager.ts",
       "../core/assets/imageAssetLoader.ts",
       "../core/assets/jsonAssetLoader.ts",
+      "../core/audio/audioManager.ts",
       "../core/behaviour/BehaviorManager.ts",
       "../core/behaviour/IBehavior.ts",
       "../core/behaviour/IBehaviorBuilder.ts",
@@ -59,7 +60,7 @@
         },
         {
           "pos": 763,
-          "end": 85254,
+          "end": 87829,
           "kind": "text"
         }
       ],
@@ -73,7 +74,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 19226,
+          "end": 19901,
           "kind": "text"
         }
       ]
