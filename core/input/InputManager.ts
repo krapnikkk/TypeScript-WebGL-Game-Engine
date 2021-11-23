@@ -50,9 +50,10 @@ namespace TSE {
 
         public static onKeyUp(event: KeyboardEvent): boolean {
             InputManager._key[event.keyCode] = false;
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
+            return true;
+            // event.preventDefault();
+            // event.stopPropagation();
+            // return false;
         }
 
         public static getMousePosition(): Vector2 {
