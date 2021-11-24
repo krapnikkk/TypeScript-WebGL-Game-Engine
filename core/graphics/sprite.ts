@@ -3,6 +3,7 @@ namespace TSE {
         protected _name: string;
         protected _width: number;
         protected _height: number;
+        protected _origin: Vector3 = Vector3.zero;
 
         protected _buffer: GLBuffer;
         protected _materialName: string;
@@ -20,6 +21,14 @@ namespace TSE {
             return this._name;
         }
 
+        public get origin(): Vector3 {
+            return this._origin;
+        }
+
+        public set origin(value: Vector3) {
+            this._origin = value;
+        }
+
         public load(): void {
             this._buffer = new GLBuffer();
             let positionAttribute = new AttributeInfo();
@@ -32,16 +41,21 @@ namespace TSE {
             textCoordAttribute.size = 2;
             this._buffer.addAttributeLocation(textCoordAttribute);
 
+            let minX = -(this._width * this.origin.x);
+            let maxX = this._width * (1.0 - this.origin.x);
+
+            let minY = -(this._height * this.origin.y);
+            let maxY = this._height * (1.0 - this.origin.y);
             this._vertices = [ // a face
                 // x y z u v
-                new Vertex(0, 0, 0, 0, 0),
-                new Vertex(0, this._height, 0, 0, 1.0),
-                new Vertex(this._width, this._height, 0, 1.0, 1.0),
-                new Vertex(this._width, this._height, 0, 1.0, 1.0),
-                new Vertex(this._width, 0, 0, 1.0, 0),
-                new Vertex(0, 0, 0, 0, 0)
+                new Vertex(minX, minY, 0, 0, 0),
+                new Vertex(minX, maxY, 0, 0, 1.0),
+                new Vertex(maxX, maxY, 0, 1.0, 1.0),
+                new Vertex(maxX, maxY, 0, 1.0, 1.0),
+                new Vertex(maxX, minY, 0, 1.0, 0),
+                new Vertex(minX, minY, 0, 0, 0)
             ];
-            for(let v of this._vertices){
+            for (let v of this._vertices) {
                 this._buffer.pushBackData(v.toArray());
             }
             this._buffer.upload();
