@@ -32,6 +32,10 @@ namespace TSE {
             this._z = value;
         }
 
+        public equals(v: Vector3): boolean {
+            return this.x == v.x && this.y == v.y && this.z == v.z;
+        }
+
         public toArray(): number[] {
             return [this._x, this._y, this._z];
         }
@@ -46,6 +50,18 @@ namespace TSE {
 
         public static get one(): Vector3 {
             return new Vector3(1, 1, 1);
+        }
+
+        public set(x?: number, y?: number, z?: number): void {
+            if (x) {
+                this._x = x;
+            }
+            if (y) {
+                this._y = y;
+            }
+            if (z) {
+                this._z = z;
+            }
         }
 
         public copyFrom(vector3: Vector3): void {

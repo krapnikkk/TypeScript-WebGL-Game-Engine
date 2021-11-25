@@ -499,6 +499,7 @@ var TSE;
 (function (TSE) {
     var SpriteComponentData = (function () {
         function SpriteComponentData() {
+            this.origin = TSE.Vector3.zero;
         }
         SpriteComponentData.prototype.setFromJson = function (json) {
             if (json.name) {
@@ -506,6 +507,9 @@ var TSE;
             }
             if (json.materialName) {
                 this.materialName = json.materialName;
+            }
+            if (json.origin) {
+                this.origin.setFromJson(json.origin);
             }
         };
         return SpriteComponentData;
@@ -535,6 +539,9 @@ var TSE;
             var _this = _super.call(this, data) || this;
             var name = data.name, materialName = data.materialName;
             _this._sprite = new TSE.Sprite(name, materialName);
+            if (!data.origin.equals(TSE.Vector3.zero)) {
+                _this._sprite.origin.copyFrom(data.origin);
+            }
             return _this;
         }
         SpriteComponent.prototype.load = function () {
@@ -867,6 +874,7 @@ var TSE;
         function Sprite(name, materialName, width, height) {
             if (width === void 0) { width = 100; }
             if (height === void 0) { height = 100; }
+            this._origin = TSE.Vector3.zero;
             this._vertices = [];
             this._name = name;
             this._width = width;
@@ -881,6 +889,17 @@ var TSE;
             enumerable: false,
             configurable: true
         });
+        Object.defineProperty(Sprite.prototype, "origin", {
+            get: function () {
+                return this._origin;
+            },
+            set: function (value) {
+                this._origin = value;
+                this.recalculateVertices();
+            },
+            enumerable: false,
+            configurable: true
+        });
         Sprite.prototype.load = function () {
             this._buffer = new TSE.GLBuffer();
             var positionAttribute = new TSE.AttributeInfo();
@@ -891,14 +910,39 @@ var TSE;
             textCoordAttribute.location = 1;
             textCoordAttribute.size = 2;
             this._buffer.addAttributeLocation(textCoordAttribute);
+            this.calculateVertices();
+        };
+        Sprite.prototype.calculateVertices = function () {
+            var minX = -(this._width * this.origin.x);
+            var maxX = this._width * (1.0 - this.origin.x);
+            var minY = -(this._height * this.origin.y);
+            var maxY = this._height * (1.0 - this.origin.y);
             this._vertices = [
-                new TSE.Vertex(0, 0, 0, 0, 0),
-                new TSE.Vertex(0, this._height, 0, 0, 1.0),
-                new TSE.Vertex(this._width, this._height, 0, 1.0, 1.0),
-                new TSE.Vertex(this._width, this._height, 0, 1.0, 1.0),
-                new TSE.Vertex(this._width, 0, 0, 1.0, 0),
-                new TSE.Vertex(0, 0, 0, 0, 0)
+                new TSE.Vertex(minX, minY, 0, 0, 0),
+                new TSE.Vertex(minX, maxY, 0, 0, 1.0),
+                new TSE.Vertex(maxX, maxY, 0, 1.0, 1.0),
+                new TSE.Vertex(maxX, maxY, 0, 1.0, 1.0),
+                new TSE.Vertex(maxX, minY, 0, 1.0, 0),
+                new TSE.Vertex(minX, minY, 0, 0, 0)
             ];
+            for (var _i = 0, _a = this._vertices; _i < _a.length; _i++) {
+                var v = _a[_i];
+                this._buffer.pushBackData(v.toArray());
+            }
+            this._buffer.upload();
+            this._buffer.unbind();
+        };
+        Sprite.prototype.recalculateVertices = function () {
+            var minX = -(this._width * this.origin.x);
+            var maxX = this._width * (1.0 - this.origin.x);
+            var minY = -(this._height * this.origin.y);
+            var maxY = this._height * (1.0 - this.origin.y);
+            this._vertices[0].position.set(minX, minY);
+            this._vertices[1].position.set(minX, maxY);
+            this._vertices[2].position.set(maxX, maxY);
+            this._vertices[3].position.set(maxX, maxY);
+            this._vertices[4].position.set(maxY, minY);
+            this._vertices[5].position.set(minX, minY);
             for (var _i = 0, _a = this._vertices; _i < _a.length; _i++) {
                 var v = _a[_i];
                 this._buffer.pushBackData(v.toArray());
@@ -1443,9 +1487,7 @@ var TSE;
         };
         InputManager.onKeyUp = function (event) {
             InputManager._key[event.keyCode] = false;
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
+            return true;
         };
         InputManager.getMousePosition = function () {
             return new TSE.Vector2(this._mouseX, this._mouseY);
@@ -1763,6 +1805,9 @@ var TSE;
             enumerable: false,
             configurable: true
         });
+        Vector3.prototype.equals = function (v) {
+            return this.x == v.x && this.y == v.y && this.z == v.z;
+        };
         Vector3.prototype.toArray = function () {
             return [this._x, this._y, this._z];
         };
@@ -1783,6 +1828,17 @@ var TSE;
             enumerable: false,
             configurable: true
         });
+        Vector3.prototype.set = function (x, y, z) {
+            if (x) {
+                this._x = x;
+            }
+            if (y) {
+                this._y = y;
+            }
+            if (z) {
+                this._z = z;
+            }
+        };
         Vector3.prototype.copyFrom = function (vector3) {
             this._x = vector3.x;
             this._y = vector3.y;

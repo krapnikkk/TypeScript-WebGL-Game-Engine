@@ -3,7 +3,7 @@ namespace TSE {
         protected _name: string;
         protected _width: number;
         protected _height: number;
-        protected _origin: Vector3 = Vector3.zero;
+        protected _origin: Vector3 =  Vector3.zero;
 
         protected _buffer: GLBuffer;
         protected _materialName: string;
@@ -27,6 +27,7 @@ namespace TSE {
 
         public set origin(value: Vector3) {
             this._origin = value;
+            this.recalculateVertices();
         }
 
         public load(): void {
@@ -41,6 +42,10 @@ namespace TSE {
             textCoordAttribute.size = 2;
             this._buffer.addAttributeLocation(textCoordAttribute);
 
+            this.calculateVertices();
+        }
+
+        protected calculateVertices(){
             let minX = -(this._width * this.origin.x);
             let maxX = this._width * (1.0 - this.origin.x);
 
@@ -55,6 +60,27 @@ namespace TSE {
                 new Vertex(maxX, minY, 0, 1.0, 0),
                 new Vertex(minX, minY, 0, 0, 0)
             ];
+            for (let v of this._vertices) {
+                this._buffer.pushBackData(v.toArray());
+            }
+            this._buffer.upload();
+            this._buffer.unbind();
+        }
+
+        protected recalculateVertices():void{
+            let minX = -(this._width * this.origin.x);
+            let maxX = this._width * (1.0 - this.origin.x);
+
+            let minY = -(this._height * this.origin.y);
+            let maxY = this._height * (1.0 - this.origin.y);
+            this._vertices[0].position.set(minX, minY);
+            this._vertices[1].position.set(minX, maxY);
+            this._vertices[2].position.set(maxX, maxY);
+
+            this._vertices[3].position.set(maxX, maxY);
+            this._vertices[4].position.set(maxY, minY);
+            this._vertices[5].position.set(minX, minY);
+
             for (let v of this._vertices) {
                 this._buffer.pushBackData(v.toArray());
             }

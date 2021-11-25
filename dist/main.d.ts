@@ -182,6 +182,7 @@ declare namespace TSE {
     class SpriteComponentData implements IComponentData {
         name: string;
         materialName: string;
+        origin: Vector3;
         setFromJson(json: any): void;
     }
     class SpriteComponentBuilder implements IComponentBuilder {
@@ -302,13 +303,18 @@ declare namespace TSE {
         protected _name: string;
         protected _width: number;
         protected _height: number;
+        protected _origin: Vector3;
         protected _buffer: GLBuffer;
         protected _materialName: string;
         protected _material: Material;
         protected _vertices: Vertex[];
         constructor(name: string, materialName: string, width?: number, height?: number);
         get name(): string;
+        get origin(): Vector3;
+        set origin(value: Vector3);
         load(): void;
+        protected calculateVertices(): void;
+        protected recalculateVertices(): void;
         update(time: number): void;
         draw(shader: Shader, model: Martix4): void;
         destory(): void;
@@ -514,10 +520,12 @@ declare namespace TSE {
         set y(value: number);
         get z(): number;
         set z(value: number);
+        equals(v: Vector3): boolean;
         toArray(): number[];
         toFloat32Array(): Float32Array;
         static get zero(): Vector3;
         static get one(): Vector3;
+        set(x?: number, y?: number, z?: number): void;
         copyFrom(vector3: Vector3): void;
         setFromJson(json: any): void;
         add(v: Vector3): Vector3;

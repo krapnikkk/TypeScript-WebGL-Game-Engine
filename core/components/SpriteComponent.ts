@@ -3,6 +3,7 @@ namespace TSE{
     export class SpriteComponentData implements IComponentData{
         public name:string;
         public materialName:string;
+        public origin:Vector3 = Vector3.zero;
 
         public setFromJson(json:any):void{
             if(json.name){
@@ -11,6 +12,10 @@ namespace TSE{
 
             if(json.materialName){
                 this.materialName = json.materialName;
+            }
+
+            if(json.origin){
+                this.origin.setFromJson(json.origin);
             }
         }
     }
@@ -34,6 +39,9 @@ namespace TSE{
             super(data);
             let {name,materialName} = data;
             this._sprite = new Sprite(name,materialName);
+            if(!data.origin.equals(Vector3.zero)){
+                this._sprite.origin.copyFrom(data.origin);
+            }
         }
 
         public load(){
