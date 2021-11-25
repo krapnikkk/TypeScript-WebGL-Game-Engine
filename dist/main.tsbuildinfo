@@ -36,6 +36,9 @@
       "../core/graphics/texture.ts",
       "../core/graphics/textureManager.ts",
       "../core/graphics/vertex.ts",
+      "../core/graphics/shape2D/ISphape.ts",
+      "../core/graphics/shape2D/circle.ts",
+      "../core/graphics/shape2D/rectangle.ts",
       "../core/input/InputManager.ts",
       "../core/math/matrix4.ts",
       "../core/math/transform.ts",
@@ -60,7 +63,7 @@
         },
         {
           "pos": 763,
-          "end": 90008,
+          "end": 91541,
           "kind": "text"
         }
       ],
@@ -74,7 +77,7 @@
       "sections": [
         {
           "pos": 0,
-          "end": 20213,
+          "end": 20707,
           "kind": "text"
         }
       ]

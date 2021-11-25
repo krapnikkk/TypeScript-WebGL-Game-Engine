@@ -1447,6 +1447,46 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var Rectangle = (function () {
+        function Rectangle() {
+            this.position = TSE.Vector2.zero;
+        }
+        Rectangle.prototype.setFromJson = function (json) {
+            if (json.position) {
+                this.setFromJson(json.position);
+            }
+            if (json.width) {
+                this.width = +json.width;
+            }
+            if (json.height) {
+                this.height = +json.height;
+            }
+        };
+        Rectangle.prototype.intersects = function (other) {
+            if (other instanceof Rectangle) {
+                if (this.pointInShape(other.position) ||
+                    this.pointInShape(new TSE.Vector2(other.position.x + other.width, other.position.y)) ||
+                    this.pointInShape(new TSE.Vector2(other.position.x + other.width, other.position.y + other.height)) ||
+                    this.pointInShape(new TSE.Vector2(other.position.x, other.position.y + other.height))) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        Rectangle.prototype.pointInShape = function (point) {
+            if (point.x >= this.position.x && point.x <= this.position.x + this.width) {
+                if (point.y >= this.position.y && point.y <= this.position.y + this.height) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        return Rectangle;
+    }());
+    TSE.Rectangle = Rectangle;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var Keys;
     (function (Keys) {
         Keys[Keys["LEFT"] = 37] = "LEFT";
