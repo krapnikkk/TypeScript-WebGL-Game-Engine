@@ -217,6 +217,23 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
+    class CollisionComponentData implements IComponentData {
+        name: string;
+        shape: IShape2D;
+        setFromJson(json: any): void;
+    }
+    class CollisionComponentBuilder implements IComponentBuilder {
+        get type(): string;
+        buildFromJson(json: any): IComponent;
+    }
+    class CollisionComponent extends BaseComponent {
+        private _shape;
+        constructor(data: CollisionComponentData);
+        get shape(): IShape2D;
+        render(shader: Shader): void;
+    }
+}
+declare namespace TSE {
     interface IComponent {
         name: string;
         readonly owner: SimObject;

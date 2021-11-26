@@ -11,8 +11,8 @@ namespace TSE{
                 if(ComponentManager._registeredBuilders[json.type]!==undefined){
                     return ComponentManager._registeredBuilders[json.type].buildFromJson(json);
                 }
-                throw new Error("ComponentManager error - type is missing or builder is not registered for this type.")
             }
+            throw new Error("ComponentManager error - type is missing or builder is not registered for this type.")
         }
     }
 }

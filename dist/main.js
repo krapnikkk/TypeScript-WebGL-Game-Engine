@@ -457,8 +457,8 @@ var TSE;
                 if (ComponentManager._registeredBuilders[json.type] !== undefined) {
                     return ComponentManager._registeredBuilders[json.type].buildFromJson(json);
                 }
-                throw new Error("ComponentManager error - type is missing or builder is not registered for this type.");
             }
+            throw new Error("ComponentManager error - type is missing or builder is not registered for this type.");
         };
         ComponentManager._registeredBuilders = {};
         return ComponentManager;
@@ -614,6 +614,71 @@ var TSE;
     }(TSE.BaseComponent));
     TSE.AnimatedSpriteComponent = AnimatedSpriteComponent;
     TSE.ComponentManager.registerBuilder(new AnimatedSpriteComponentBuilder);
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
+    var CollisionComponentData = (function () {
+        function CollisionComponentData() {
+        }
+        CollisionComponentData.prototype.setFromJson = function (json) {
+            if (json.name) {
+                this.name = json.name;
+            }
+            if (json.shape) {
+                var shapeType = json.shape.type;
+                switch (shapeType) {
+                    case "circle":
+                        this.shape = new TSE.Circle();
+                        break;
+                    case "rectangle":
+                        this.shape = new TSE.Rectangle();
+                        break;
+                }
+                this.shape.setFromJson(json.shape);
+            }
+        };
+        return CollisionComponentData;
+    }());
+    TSE.CollisionComponentData = CollisionComponentData;
+    var CollisionComponentBuilder = (function () {
+        function CollisionComponentBuilder() {
+        }
+        Object.defineProperty(CollisionComponentBuilder.prototype, "type", {
+            get: function () {
+                return "collision";
+            },
+            enumerable: false,
+            configurable: true
+        });
+        CollisionComponentBuilder.prototype.buildFromJson = function (json) {
+            var data = new CollisionComponentData();
+            data.setFromJson(json);
+            return new CollisionComponent(data);
+        };
+        return CollisionComponentBuilder;
+    }());
+    TSE.CollisionComponentBuilder = CollisionComponentBuilder;
+    var CollisionComponent = (function (_super) {
+        __extends(CollisionComponent, _super);
+        function CollisionComponent(data) {
+            var _this = _super.call(this, data) || this;
+            _this._shape = data.shape;
+            return _this;
+        }
+        Object.defineProperty(CollisionComponent.prototype, "shape", {
+            get: function () {
+                return this._shape;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        CollisionComponent.prototype.render = function (shader) {
+            _super.prototype.render.call(this, shader);
+        };
+        return CollisionComponent;
+    }(TSE.BaseComponent));
+    TSE.CollisionComponent = CollisionComponent;
+    TSE.ComponentManager.registerBuilder(new CollisionComponentBuilder);
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {

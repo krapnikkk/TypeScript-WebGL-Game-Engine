@@ -4,33 +4,46 @@
     "id": 0,
     "objects": [
         {
-            "name":"duck",
-            "transform":{
-                "position":{
-                    "x":100,
-                    "y":100
+            "name": "duck",
+            "transform": {
+                "position": {
+                    "x": 100,
+                    "y": 100
                 },
-                "scale":{
-                    "x":3,
-                    "y":3
+                "scale": {
+                    "x": 3,
+                    "y": 3
                 }
             },
-            "components":[
+            "components": [
                 {
-                    "name":"duck",
-                    "type":"animatedSprite",
-                    "materialName":"duck",
+                    "name": "duck",
+                    "type": "animatedSprite",
+                    "materialName": "duck",
                     "frameWidth": 17,
                     "frameHeight": 12,
                     "frameCount": 3,
-                    "frameSequence": [0,1,2,1]
+                    "frameSequence": [
+                        0,
+                        1,
+                        2,
+                        1
+                    ]
+                },
+                {
+                    "name": "duckCollision",
+                    "type":"collision",
+                    "shape": {
+                        "type": "circle",
+                        "radius": 68
+                    }
                 }
             ],
-            "behaviors":[
+            "behaviors": [
                 {
-                    "name":"movement",
-                    "type":"keybroadMovement",
-                    "speed":2.5
+                    "name": "movement",
+                    "type": "keybroadMovement",
+                    "speed": 2.5
                 }
             ]
         },
@@ -41,9 +54,9 @@
                     "x": 300,
                     "y": 300
                 },
-                "scale":{
-                    "x":1,
-                    "y":1
+                "scale": {
+                    "x": 1,
+                    "y": 1
                 }
             },
             "children": [
@@ -60,9 +73,9 @@
                             "name": "inner",
                             "type": "sprite",
                             "materialName": "sky",
-                            "origin":{
-                                "x":0.5,
-                                "y":0.5
+                            "origin": {
+                                "x": 0.5,
+                                "y": 0.5
                             }
                         }
                     ]
@@ -73,19 +86,18 @@
                     "name": "outer",
                     "type": "sprite",
                     "materialName": "sky",
-                    "origin":{
-                        "x":0.5,
-                        "y":0.5
+                    "origin": {
+                        "x": 0.5,
+                        "y": 0.5
                     }
                 }
             ],
-            "behaviors":[
+            "behaviors": [
                 {
-                    "name":"rotateX",
-                    "type":"rotation",
-                    "rotation":{
-                        "z":0.01
-
+                    "name": "rotateX",
+                    "type": "rotation",
+                    "rotation": {
+                        "z": 0.01
                     }
                 }
             ]
