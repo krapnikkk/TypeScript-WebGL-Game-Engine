@@ -442,6 +442,15 @@ declare namespace TSE {
     }
 }
 declare namespace TSE {
+    class Circle implements IShape2D {
+        position: Vector2;
+        radius: number;
+        setFromJson(json: any): void;
+        intersects(other: IShape2D): boolean;
+        pointInShape(point: Vector2): boolean;
+    }
+}
+declare namespace TSE {
     class Rectangle implements IShape2D {
         position: Vector2;
         width: number;
@@ -524,6 +533,12 @@ declare namespace TSE {
         copyFrom(vector2: Vector2): void;
         toArray(): number[];
         toFloat32Array(): Float32Array;
+        set(x?: number, y?: number): void;
+        add(v: Vector2): Vector2;
+        subtract(v: Vector2): Vector2;
+        multiply(v: Vector2): Vector2;
+        divide(v: Vector2): Vector2;
+        static distance(a: Vector2, b: Vector2): number;
     }
 }
 declare namespace TSE {
@@ -550,6 +565,7 @@ declare namespace TSE {
         subtract(v: Vector3): Vector3;
         multiply(v: Vector3): Vector3;
         divide(v: Vector3): Vector3;
+        static distance(a: Vector3, b: Vector3): number;
     }
 }
 declare namespace TSE {

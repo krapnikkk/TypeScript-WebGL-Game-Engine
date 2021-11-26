@@ -1447,6 +1447,38 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
+    var Circle = (function () {
+        function Circle() {
+            this.position = TSE.Vector2.zero;
+        }
+        Circle.prototype.setFromJson = function (json) {
+            if (json.position) {
+                this.setFromJson(json.position);
+            }
+        };
+        Circle.prototype.intersects = function (other) {
+            if (other instanceof Circle) {
+                var distance = Math.abs(TSE.Vector2.distance(other.position, this.position));
+                var radiusLengths = this.radius + other.radius;
+                if (distance <= radiusLengths) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        Circle.prototype.pointInShape = function (point) {
+            var absDistance = Math.abs(TSE.Vector2.distance(this.position, point));
+            if (absDistance < this.radius) {
+                return true;
+            }
+            return false;
+        };
+        return Circle;
+    }());
+    TSE.Circle = Circle;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var Rectangle = (function () {
         function Rectangle() {
             this.position = TSE.Vector2.zero;
@@ -1468,6 +1500,14 @@ var TSE;
                     this.pointInShape(new TSE.Vector2(other.position.x + other.width, other.position.y)) ||
                     this.pointInShape(new TSE.Vector2(other.position.x + other.width, other.position.y + other.height)) ||
                     this.pointInShape(new TSE.Vector2(other.position.x, other.position.y + other.height))) {
+                    return true;
+                }
+            }
+            if (other instanceof TSE.Circle) {
+                if (other.pointInShape(this.position) ||
+                    other.pointInShape(new TSE.Vector2(this.position.x + this.width, this.position.y)) ||
+                    other.pointInShape(new TSE.Vector2(this.position.x + this.width, this.position.y + this.height)) ||
+                    other.pointInShape(new TSE.Vector2(this.position.x, this.position.y + this.height))) {
                     return true;
                 }
             }
@@ -1800,6 +1840,39 @@ var TSE;
         Vector2.prototype.toFloat32Array = function () {
             return new Float32Array(this.toArray());
         };
+        Vector2.prototype.set = function (x, y) {
+            if (x) {
+                this._x = x;
+            }
+            if (y) {
+                this._y = y;
+            }
+        };
+        Vector2.prototype.add = function (v) {
+            var x = v.x, y = v.y;
+            this.x += x;
+            this.y += y;
+            return this;
+        };
+        Vector2.prototype.subtract = function (v) {
+            this._x -= v._x;
+            this._y -= v._y;
+            return this;
+        };
+        Vector2.prototype.multiply = function (v) {
+            this._x *= v._x;
+            this._y *= v._y;
+            return this;
+        };
+        Vector2.prototype.divide = function (v) {
+            this._x /= v._x;
+            this._y /= v._y;
+            return this;
+        };
+        Vector2.distance = function (a, b) {
+            var diff = a.subtract(b);
+            return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
+        };
         return Vector2;
     }());
     TSE.Vector2 = Vector2;
@@ -1914,6 +1987,10 @@ var TSE;
             this._y /= v._y;
             this._z /= v._z;
             return this;
+        };
+        Vector3.distance = function (a, b) {
+            var diff = a.subtract(b);
+            return Math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
         };
         return Vector3;
     }());

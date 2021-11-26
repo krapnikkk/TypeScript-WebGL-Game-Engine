@@ -1,6 +1,5 @@
 namespace TSE {
     export class Rectangle implements IShape2D {
-
         position: Vector2 = Vector2.zero;
         public width: number;
         public height: number;
@@ -22,6 +21,15 @@ namespace TSE {
                     this.pointInShape(new Vector2(other.position.x + other.width, other.position.y)) ||
                     this.pointInShape(new Vector2(other.position.x + other.width, other.position.y + other.height)) ||
                     this.pointInShape(new Vector2(other.position.x, other.position.y + other.height))
+                ) {
+                    return true;
+                }
+            }
+            if (other instanceof Circle) {
+                if (other.pointInShape(this.position) ||
+                    other.pointInShape(new Vector2(this.position.x + this.width, this.position.y)) ||
+                    other.pointInShape(new Vector2(this.position.x + this.width, this.position.y + this.height)) ||
+                    other.pointInShape(new Vector2(this.position.x, this.position.y + this.height))
                 ) {
                     return true;
                 }

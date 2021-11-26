@@ -109,5 +109,10 @@ namespace TSE {
             return this;
         }
 
+        public static distance(a: Vector3, b: Vector3): number {
+            let diff = a.subtract(b);
+            return Math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+        }
+
     }
 }
