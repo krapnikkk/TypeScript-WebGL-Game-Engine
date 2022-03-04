@@ -114,5 +114,13 @@ namespace TSE {
             return Math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
         }
 
+
+        public clone():Vector3{
+            return new Vector3(this._x,this._y,this._z);
+        }
+
+        public toVector2():Vector2{
+            return new Vector2(this.x,this.y);
+        }
     }
 }

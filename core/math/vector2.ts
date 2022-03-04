@@ -83,5 +83,8 @@ namespace TSE {
             return Math.sqrt(diff.x * diff.x + diff.y * diff.y);
         }
 
+        public clone():Vector2{
+            return new Vector2(this._x,this._y);
+        }
     }
 }

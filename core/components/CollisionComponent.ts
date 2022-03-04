@@ -47,8 +47,29 @@ namespace TSE {
             return this._shape;
         }
 
+        public load():void{
+            super.load();
+        }
+
+        public update(time:number):void{
+            this._shape.position.copyFrom(this.owner.transform.position.toVector2());
+            super.update(time);
+        }
+
         public render(shader: Shader): void {
             super.render(shader);
+        }
+
+        public onCollisionEntry(other:CollisionComponent):void{
+            
+        }
+
+        public onCollisionUpdate(other:CollisionComponent):void{
+            
+        }
+
+        public onCollisionExit(other:CollisionComponent):void{
+            
         }
 
     }
